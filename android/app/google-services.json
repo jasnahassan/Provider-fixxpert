@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "466988466843",
+    "project_id": "fixxpert-provider",
+    "storage_bucket": "fixxpert-provider.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:466988466843:android:062622b8e48890e7723c3e",
+        "android_client_info": {
+          "package_name": "com.optima.technician"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "466988466843-1siovhb5iqrcgiu16sj2rd3l32l0t6d6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.optima.technician",
+            "certificate_hash": "67f0586e00f584c982cb27030a66c2cb8938e703"
+          }
+        },
+        {
+          "client_id": "466988466843-pq38idt9trhv1r2gp41nrvtl00o7o2hc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3PUAF18LDZUUjZCGxZHGffQnXOwhwnOU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "466988466843-pq38idt9trhv1r2gp41nrvtl00o7o2hc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
