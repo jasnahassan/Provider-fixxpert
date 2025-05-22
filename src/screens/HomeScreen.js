@@ -19,7 +19,7 @@ import {
 import Carousel from "react-native-snap-carousel";
 import { useDispatch, useSelector } from "react-redux";
 import messaging from '@react-native-firebase/messaging';
-import { updateFcmToken, fetchAllServiceTypes, fetchBanners ,sendServiceProviderLocation} from "../redux/AuthSlice";
+import { updateFcmToken, fetchAllServiceTypes, fetchBanners ,sendServiceProviderLocation,fetchProviderDashboard,fetchUnassignedBookings,acceptBooking} from "../redux/AuthSlice";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -54,14 +54,15 @@ const HomeScreen = ({ navigation }) => {
   const carouselRef = useRef(null);
   const dispatch = useDispatch();
   const serviceTypes = useSelector((state) => state.auth.serviceTypes);
-  const { banners, loading, error } = useSelector((state) => state.auth);
+  const { banners, loading, error ,dashboardDetails,unassignedBookings,acceptedBooking} = useSelector((state) => state.auth);
   const [isActive, setIsActive] = useState(true);
+  const [providerid, setproviderid] = useState('');
 
   const stats = [
-    { count: 98, label: "Total Booking", image: require("../assets/appointment.png"), backimage: require("../assets/Blueimg.png") },
-    { count: 15, label: "Total Service", image: require("../assets/costumer-service.png"), backimage: require("../assets/Blueimg.png") },
-    { count: 30, label: "Upcoming Booking", image: require("../assets/repairing-service.png"), backimage: require("../assets/Blueimg.png") },
-    { count: 1124, label: "Total Earning", image: require("../assets/bar-chart.png"), backimage: require("../assets/Blueimg.png") },
+    { count: dashboardDetails?.total_bookings, label: "Total Booking", image: require("../assets/appointment.png"), backimage: require("../assets/Blueimg.png") },
+    { count: dashboardDetails?.total_completed_works, label: "Total completed Service", image: require("../assets/costumer-service.png"), backimage: require("../assets/Blueimg.png") },
+    { count: dashboardDetails?.total_upcoming_bookings, label: "Upcoming Booking", image: require("../assets/repairing-service.png"), backimage: require("../assets/Blueimg.png") },
+    { count: dashboardDetails?.total_revenue, label: "Total Earning", image: require("../assets/bar-chart.png"), backimage: require("../assets/Blueimg.png") },
   ];
 
   const services = [
@@ -125,13 +126,15 @@ const HomeScreen = ({ navigation }) => {
   };
   const getCurrentLocation = async() => {
     const user = await getUserData();
-        console.log(user?.service_provider_id, 'userdata')
+        console.log(user?.service_provider_id, 'userdatatt')
+       
     Geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         console.log("Latitude:", latitude);
         console.log("Longitude:", longitude);
         const providerId = 2; // Replace with actual ID
+      
         
         dispatch(sendServiceProviderLocation({
           service_provider_id: user?.service_provider_id,
@@ -152,8 +155,24 @@ const HomeScreen = ({ navigation }) => {
   };
     
   useEffect(() => {
-    requestLocationPermission(); },[dispatch])
+    const fetchData = async () => {
+      try {
+        const user = await getUserData();
+        console.log(user?.service_provider_id, 'userdatatt 123');
+        setproviderid(user?.service_provider_id)
+  
+        dispatch(fetchProviderDashboard(user?.service_provider_id));
+        dispatch(fetchUnassignedBookings(user?.service_provider_id));
+        requestLocationPermission(); 
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+  
+    fetchData();
+  }, [dispatch]);
 
+  
 
   useEffect(() => {
     // const backAction = () => true;
@@ -251,7 +270,7 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Services</Text>
           {/* <TouchableOpacity onPress={() => navigation.navigate("ViewAllServices", { title: "All Services" })}> */}
-            <Text style={styles.viewAll}>›</Text>
+            {/* <Text style={styles.viewAll}>›</Text> */}
           {/* </TouchableOpacity> */}
         </View>
 
@@ -267,32 +286,38 @@ const HomeScreen = ({ navigation }) => {
 
         {/* Emergency Services Grid */}
         <FlatList
-          data={services}
+          data={unassignedBookings}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <View style={styles.serviceCard}>
               <View style={styles.cardHeader}>
-                <Text style={styles.serviceTitle2}>{item.title}</Text>
-                <Text style={styles.serviceId}>#{item.id}77777</Text>
+                <Text style={styles.serviceTitle2}>{item?.service_name}</Text>
+                <Text style={styles.serviceId}>#{item?.booking_id}</Text>
               </View>
 
               <View style={styles.cardRow}>
-                <Image source={require('../assets/location.png')} style={styles.icon} />
-                <Text style={styles.cardText}>{item.location}44</Text>
+                <Image source={require('../assets/Locationred.png')} style={styles.icon} />
+                <Text style={styles.cardText}>{item?.city_name}</Text>
               </View>
 
               <View style={styles.cardRow}>
-                <Image source={require('../assets/logo.png')} style={styles.icon} />
-                <Text style={styles.cardText}>{item.datetime}555</Text>
+                <Image resizeMode='contain' source={require('../assets/Calendar.png')} style={styles.icon} />
+                <Text style={styles.cardText}>{item?.created_on}</Text>
               </View>
 
               <View style={styles.cardRow}>
-                <Image source={require('../assets/logo.png')} style={styles.icon} />
-                <Text style={styles.cardText}>{item.user}4444</Text>
+                <Image source={require('../assets/Profilered.png')} style={styles.icon} />
+                <Text style={styles.cardText}>{item?.user?.name}</Text>
               </View>
 
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.acceptBtn}>
+                <TouchableOpacity onPress={()=>{
+                   dispatch(acceptBooking(item?.booking_id))
+                   dispatch(fetchProviderDashboard(providerid));
+                   dispatch(fetchUnassignedBookings(providerid));
+                }
+                  
+                  } style={styles.acceptBtn}>
                   <Text style={styles.btnText}>Accept</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.declineBtn}>
@@ -544,7 +569,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 16,
     height: 16,
-    tintColor: "#555",
+    // tintColor: "#555",
   },
   buttonRow: {
     flexDirection: "row",

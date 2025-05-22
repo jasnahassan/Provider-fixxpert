@@ -989,6 +989,90 @@ export const sendServiceProviderLocation = createAsyncThunk(
   }
 );
 
+export const fetchProviderDashboard = createAsyncThunk(
+  'dashboard/fetchProviderDashboard',
+  async (providerId, { rejectWithValue }) => {
+    try {
+      console.log(providerId,'provider')
+      const token = await AsyncStorage.getItem('authToken');
+      const response = await fetch(`${BASE_URL}booking/provider_dashboard/${providerId}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      const data = await response.json();
+      console.log(data, 'Dashboard Details Response');
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch dashboard details');
+      }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong!');
+    }
+  }
+);
+
+export const fetchUnassignedBookings = createAsyncThunk(
+  'booking/fetchUnassignedBookings',
+  async (providerId, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const response = await fetch(`${BASE_URL}booking/unassigned_bookings/${providerId}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      const data = await response.json();
+      console.log(data, 'Unassigned Bookings Response');
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch unassigned bookings');
+      }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong!');
+    }
+  }
+);
+export const acceptBooking = createAsyncThunk(
+  'booking/acceptBooking',
+  async (bookingId, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const response = await fetch(`${BASE_URL}booking/accept_booking/${bookingId}`, {
+        method: 'PUT',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      const data = await response.json();
+      console.log(data, 'Accept Booking Response');
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to accept booking');
+      }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong!');
+    }
+  }
+);
+
 
 const authSlice = createSlice({
   name: 'auth',
@@ -997,7 +1081,9 @@ const authSlice = createSlice({
     isAuthenticated: false,
     loading: false,
     error: null,
-    serviceDetails: null
+    serviceDetails: null,
+    dashboardDetails: null,
+    unassignedBookings:null
   },
   reducers: {
     logout: (state) => {
@@ -1172,6 +1258,42 @@ const authSlice = createSlice({
       .addCase(fetchCities.rejected, (state) => {
         state.loadingCities = false;
       })
+
+      .addCase(fetchProviderDashboard.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProviderDashboard.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dashboardDetails = action.payload;
+      })
+      .addCase(fetchProviderDashboard.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      .addCase(fetchUnassignedBookings.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchUnassignedBookings.fulfilled, (state, action) => {
+        state.loading = false;
+        state.unassignedBookings = action.payload; // assuming you name the state key like this
+      })
+      .addCase(fetchUnassignedBookings.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(acceptBooking.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(acceptBooking.fulfilled, (state, action) => {
+        state.loading = false;
+        state.acceptedBooking = action.payload;
+      })
+      .addCase(acceptBooking.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 

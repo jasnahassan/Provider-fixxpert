@@ -271,7 +271,7 @@ const RequestDetailScreen = ({ navigation }) => {
         {/* Call / Chat buttons with Icons */}
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.callBtn}>
-            <Image source={require('../assets/Chat.png')} style={styles.icon} />
+            <Image source={require('../assets/Calling.png')} style={styles.icon} />
             <Text style={styles.btnTextWhite}>Call</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.chatBtn}>
