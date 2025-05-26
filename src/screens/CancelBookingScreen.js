@@ -9,23 +9,25 @@ import {
     Image,
     Modal
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+// import { useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateBookingstatus } from '../redux/AuthSlice';
 import GradientButton from '../components/GradientButton';
 
 
-const CancelBookingScreen = ({ navigation }) => {
+const CancelBookingScreen = ({ navigation,route }) => {
+    
+    const { selectedBooking } = route.params;
     const [selectedReason, setSelectedReason] = useState('');
     const [customReason, setCustomReason] = useState('');
     const dispatch = useDispatch();
-    const route = useRoute();
-    const { bookingId } = route.params;
+    // const route = useRoute();
+   
     const [successModalVisible, setSuccessModalVisible] = useState(false);
 
 
     useEffect(() => {
-        console.log('Received Booking ID:', bookingId);
+        console.log('Received Booking ID:', selectedBooking);
         // use it to fetch or display info related to this booking
     }, []);
 
@@ -43,7 +45,7 @@ const CancelBookingScreen = ({ navigation }) => {
             return;
         }
 
-        dispatch(updateBookingstatus({ bookingId:bookingId,booking_status:4 }))
+        dispatch(updateBookingstatus({ bookingId:selectedBooking?.booking_id,booking_status:4 }))
             .unwrap()
             .then(() => {
                 setSuccessModalVisible(true);
@@ -64,12 +66,13 @@ const CancelBookingScreen = ({ navigation }) => {
             </TouchableOpacity>
             <View style={styles.card}>
                 <Image
-                    source={{ uri: 'https://ritikamirchandani.com/uploads/383/20240508055131.jpg' }} // replace with your image URL or local path
+                    source={{ uri: selectedBooking?.service_icon }} // replace with your image URL or local path
                     style={styles.image}
                 />
                 <View style={{ flex: 1 }}>
-                    <Text style={styles.serviceTitle}>Cabinet maintenance</Text>
-                    <Text style={styles.price}>₹699</Text>
+                    <Text style={styles.serviceTitle}>{selectedBooking?.service_name}</Text>
+                    <Text style={styles.price}>{selectedBooking?.address_details?.address_line1},{selectedBooking?.address_details?.address_line2}</Text>
+                    <Text style={styles.price}>{selectedBooking?.booked_date_time}</Text>
                 </View>
 
             </View>
@@ -134,13 +137,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         alignItems: 'center'
     },
-    image: {
-        width: 80,
-        height: 80,
-        borderRadius: 10,
-        marginRight: 10
-
-    },
+  
     serviceTitle: { fontSize: 18, fontWeight: '600',color:'black' },
     price: { fontSize: 16, color: '#888', marginTop: 4 },
     label: { fontSize: 15, fontWeight: '500', marginBottom: 10 ,color:'black'},
@@ -205,10 +202,12 @@ const styles = StyleSheet.create({
     modalButton: { backgroundColor: '#e53935', padding: 10, borderRadius: 5 },
     modalButtonText: { color: '#fff', fontWeight: 'bold' },
     image: {
-        width: 115,
-        height: 115,
+        width: 90,
+        height: 90,
         marginBottom: 25,
-        marginTop: 20
+        marginTop: 20,
+        padding:10,
+        margin:10
     },
     serviceImage: {
         width: '100%',

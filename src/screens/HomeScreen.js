@@ -19,7 +19,7 @@ import {
 import Carousel from "react-native-snap-carousel";
 import { useDispatch, useSelector } from "react-redux";
 import messaging from '@react-native-firebase/messaging';
-import { updateFcmToken, fetchAllServiceTypes, fetchBanners ,sendServiceProviderLocation,fetchProviderDashboard,fetchUnassignedBookings,acceptBooking,fetchBookingByFilter} from "../redux/AuthSlice";
+import { updateFcmToken, fetchAllServiceTypes, fetchBanners ,sendServiceProviderLocation,fetchProviderDashboard,fetchUnassignedBookings,acceptBooking,fetchBookingByFilter,deActivateprovider,Activateprovider} from "../redux/AuthSlice";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -57,6 +57,7 @@ const HomeScreen = ({ navigation }) => {
   const { banners, loading, error ,dashboardDetails,unassignedBookings,acceptedBooking,bookings} = useSelector((state) => state.auth);
   const [isActive, setIsActive] = useState(true);
   const [providerid, setproviderid] = useState('');
+  
 
   const stats = [
     { count: dashboardDetails?.total_bookings, label: "Total Booking", image: require("../assets/appointment.png"), backimage: require("../assets/Blueimg.png") },
@@ -240,7 +241,16 @@ const HomeScreen = ({ navigation }) => {
 
             <Switch
               value={isActive}
-              onValueChange={setIsActive}
+              // onValueChange={setIsActive}
+              onValueChange={(value) => {
+
+                setIsActive(value);
+                if (value) {
+                  dispatch(Activateprovider(providerid));         // Call activate API
+                } else {
+                  dispatch(deActivateprovider(providerid)); // Call deactivate API
+                }
+              }}
               thumbColor={isActive ? "#fff" : "#ccc"}
               trackColor={{ false: "#aaa", true: "#093759" }}
             />

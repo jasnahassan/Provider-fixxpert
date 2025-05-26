@@ -845,6 +845,7 @@ export const rescheduleBooking = createAsyncThunk(
     }
   }
 );
+
 export const deleteProfile = createAsyncThunk(
   'user/deleteProfile',
   async (userId, { rejectWithValue }) => {
@@ -853,7 +854,8 @@ export const deleteProfile = createAsyncThunk(
       console.log('Deleting user with ID:', userId);
 
       const response = await fetch(`${BASE_URL}provider/deactivate/${userId}`, {
-        method: 'DELETE',
+        // method: 'DELETE',
+        method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -1130,6 +1132,165 @@ export const createAdditionalAmount = createAsyncThunk(
     }
   }
 );
+export const createPaymentHistory = createAsyncThunk(
+  'payment/createPaymentHistory',
+  async (paymentData, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      console.log(paymentData,'here payment dsata')
+
+      const response = await fetch(`${BASE_URL}payment_history/create`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({
+          booking_id: paymentData?.booking_id,
+          transaction_id: paymentData?.transaction_id,
+          description: paymentData?.description,
+          payment_type: paymentData?.payment_type,
+          paid_on: paymentData?.paid_on,
+          amount: paymentData?.amount,
+          razorpay_id: paymentData?.razorpay_id,
+          additional_amount_id: paymentData?.additional_amount_id,
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Create Payment History Response:', data);
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong while creating payment history!');
+    }
+  }
+);
+export const createMessage = createAsyncThunk(
+  'messages/createMessage',
+  async (messageData, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      console.log(messageData, 'Message Data');
+
+      const response = await fetch(`${BASE_URL}messages/create`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({
+          user_id: messageData?.user_id,
+          provider_id: messageData?.provider_id,
+          message: messageData?.message,
+          is_from_user_to_provider: messageData?.is_from_user_to_provider,
+          booking_id: messageData?.booking_id,
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Create Message Response:', data);
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong while sending the message!');
+    }
+  }
+);
+
+export const fetchMessages = createAsyncThunk(
+  'messages/fetchMessages',
+  async (booking_id, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      console.log('Fetching messages for booking id:', booking_id);
+
+      const response = await fetch(`${BASE_URL}messages/fetch/${booking_id}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
+
+      const data = await response.json();
+      console.log('Fetch Messages Response:', data);
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong while fetching messages!');
+    }
+  }
+);
+
+export const deActivateprovider = createAsyncThunk(
+  'user/deActivateprovider',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      console.log('Deactive user with ID:', userId);
+
+      const response = await fetch(`${BASE_URL}provider/deactivate/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      const data = await response.json();
+      console.log('Deactivate Profile Response:', data);
+
+      // Check for successful response
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete profile');
+      }
+
+      return data; // Return the response data
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong while deleting the profile!');
+    }
+  }
+);
+
+export const Activateprovider = createAsyncThunk(
+  'user/Activateprovider',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      console.log('active user with ID:', userId);
+
+      const response = await fetch(`${BASE_URL}provider/activate/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      const data = await response.json();
+      console.log('active Profile Response:', data);
+
+      // Check for successful response
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete profile');
+      }
+
+      return data; // Return the response data
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong while deleting the profile!');
+    }
+  }
+);
 
 
 const authSlice = createSlice({
@@ -1143,6 +1304,7 @@ const authSlice = createSlice({
     dashboardDetails: null,
     unassignedBookings:null,
     bookings: [],
+    messages: [],
   },
   reducers: {
     logout: (state) => {
@@ -1374,6 +1536,30 @@ const authSlice = createSlice({
         state.successMessage = action.payload.message;
       })
       .addCase(createAdditionalAmount.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchMessages.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMessages.fulfilled, (state, action) => {
+        state.loading = false;
+        state.messages = action.payload;
+      })
+      .addCase(fetchMessages.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(createMessage.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createMessage.fulfilled, (state, action) => {
+        state.loading = false;
+        state.messages.push(action.payload); // Add the new message to the list
+      })
+      .addCase(createMessage.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

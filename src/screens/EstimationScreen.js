@@ -74,7 +74,11 @@ const EstimationScreen = ({ navigation,route }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Add Service</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={require('../assets/back-arrow.png')} style={styles.backIcon} />
+          <Text style={styles.title}>Add Service additional amount</Text>
+        </TouchableOpacity>
+      {/* <Text style={styles.header}>Add Service</Text> */}
 
       <TouchableOpacity style={styles.imageBox} onPress={handleImagePick}>
         {imageUri ? (
@@ -130,6 +134,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   row: { flexDirection: 'row', justifyContent: 'space-between' },
+  backIcon: {
+    height: 20,
+    width: 20,
+    marginTop: 5,
+    marginRight: 15,
+    resizeMode: 'contain'
+  },
+  title: {
+    fontSize: 20,
+    color: 'black'
+  },
+  backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
+
 });
 
 export default EstimationScreen;

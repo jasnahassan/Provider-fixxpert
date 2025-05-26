@@ -1,13 +1,19 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef ,useEffect} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image ,TextInput} from 'react-native';
 import GradientButton from '../components/GradientButton';
+import RazorpayCheckout from 'react-native-razorpay';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createPaymentHistory ,updateBookingstatus} from '../redux/AuthSlice';
+import { useDispatch, useSelector } from "react-redux";
 
 const ServiceStatusScreen = ({ navigation, route }) => {
+    const dispatch = useDispatch();
     const { bookingItem, additionalAmountResponse } = route.params;
     const [isRunning, setIsRunning] = useState(false);
     const [seconds, setSeconds] = useState(0);
     const [showModal, setShowModal] = useState(false);
     const [cashAmount, setCashAmount] = useState('');
+    const [userdetails, setUserdetails] = useState('');
     const timerRef = useRef(null);
     const serviceList = additionalAmountResponse?.description
         ? additionalAmountResponse.description.split(/\n|,/).map(item => item.trim()).filter(Boolean)
@@ -36,9 +42,98 @@ const ServiceStatusScreen = ({ navigation, route }) => {
 
     const { hrs, mins, secs } = formatTime(seconds);
 
+    const getUserData = async () => {
+        try {
+          const jsonValue = await AsyncStorage.getItem('userData');
+          if (jsonValue != null) {
+            const user = JSON.parse(jsonValue);
+            console.log('User Data:', user);
+            // console.log('User Data service:', serviceDetails);
+            // setFinalAmount(serviceDetails?.basic_amount)
+            return user;
+          }
+        } catch (e) {
+          console.error('Error fetching userData from AsyncStorage:', e);
+        }
+      };
+      useEffect(() => {
+        const fetchUser = async () => {
+          const user = await getUserData();
+          console.log(user, 'userdata')
+          setUserdetails(user)
+    
+        };
+        fetchUser();
+    
+      }, [dispatch])
+
+
+    const ConfirmBookingPayment = async () => {
+        try {
+        //   const totalAmount = additionalAmount.reduce((sum, item) => {
+        //     return sum + parseFloat(item.amount);
+        //   }, 0);
+    
+          const amountInPaise = additionalAmountResponse?.amount * 100;
+          // const amountInPaise = additionalAmount[0].amount * 100;
+    
+            const options = {
+                description: 'Service Booking Payment',
+                image: 'https://media-hosting.imagekit.io/48237198e4264b42/f4x.png?Expires=1841417217&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=mtzLy7P-JFKwcbdxZLAseEUXV2vqtwcxVPIpPc5t~Saa9eedJ7zUy7JO7-YkaWlnrHuwYgCv6MGmNSL8ocvr~22BLlmLfnYY7pt44nw4dSOIgntAMtzBu~MN3gS-KDJCT0lnw6OSnIP9Zz8SDeBSuCxCHs9cwDalI6FtHP8ONwLx7RRkOjmZCB9v46~xlh2nuAQTjWbhWP0eB2YWw9PNUdcGcVH9jRAI~cDth1fKJdRoiMtC0nnW6ETYHdi24qse-F0WLbaINBhXhAYmAF2oHkYi45LgSx3hW5ay4rVuTPTjpdQL4Qgn2rsULcmzCEM5vJitUKVw91ZPB2cqHtvcAA__',
+                currency: 'INR',
+                key: 'rzp_test_KaTmpqw5X6NA0S',
+                amount: amountInPaise.toString(),
+                name: 'FixXpert',
+                prefill: {
+                    email: userdetails?.email,
+                    contact: userdetails?.mobile,
+                    name: userdetails?.name,
+                },
+                theme: { color: '#DB3043' }
+            };
+    
+            RazorpayCheckout.open(options)
+                .then(async (paymentData) => {
+                    console.log('✅ Payment Success', paymentData);
+    
+                    const paidOn = new Date().toISOString().split('.')[0];
+                    const paymentHistoryData = {
+                        booking_id: bookingItem?.booking_id,
+                        transaction_id: `TXN${Date.now()}`,
+                        description: 'Payment for service booking',
+                        payment_type: 1,
+                        paid_on: paidOn,
+                      amount: additionalAmountResponse?.amount?.toString(),
+                        razorpay_id: paymentData?.razorpay_payment_id || '',
+                        additional_amount_id: null,
+                    };
+    
+                    const response = await dispatch(createPaymentHistory(paymentHistoryData)).unwrap();
+                    console.log("✅ Payment History Created:", response);
+                //   dispatch(StatusUpdate({ bookingId: bookingId, bookingstatus: 12 }))
+                dispatch(updateBookingstatus({ bookingId:bookingItem?.booking_id,booking_status:12 }))
+                //   dispatch(fetchBookingHistoryById(bookingId));
+                    
+                })
+                .catch((error) => {
+                    console.error("❌ Payment Failed:", error);
+                    Alert.alert("Payment Failed", error);
+                });
+    
+        } catch (err) {
+            console.error("❌ Something went wrong:", err);
+            Alert.alert('Error', 'Something went wrong during payment.');
+        }
+    };
+    
+
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>Service status</Text>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={require('../assets/back-arrow.png')} style={styles.backIcon} />
+          <Text style={styles.title}>Service status</Text>
+        </TouchableOpacity>
+            {/* <Text style={styles.header}>Service status</Text> */}
             <Text style={styles.serviceName}>{bookingItem?.service_name}</Text>
 
             {/* Timer Section */}
@@ -69,11 +164,11 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                     margintop={10}
                 />
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate('AdditionalAmountScreen', { bookingItem: bookingItem })}>
+            {/* <TouchableOpacity onPress={() => navigation.navigate('AdditionalAmountScreen', { bookingItem: bookingItem })}>
                 <Text style={{ color: 'black', fontSize: 17 }}>
                     Additional Amount
                 </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             {/* Services List */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Services list</Text>
@@ -109,14 +204,17 @@ const ServiceStatusScreen = ({ navigation, route }) => {
             </View>
 
             <Text style={styles.note}>⚠️ Customer needs to pay before service completion</Text>
-
+            {/* <Text style={styles.note}> if offline paid</Text> */}
+            <TouchableOpacity onPress={() => setShowModal(true)} style={{width:90,height:30,backgroundColor:'blue',justifyContent:'center',alignItems:'center'}}>
+            <Text style={{color:'white'}}>Pay now</Text>
+            </TouchableOpacity>
+{/* 
             <GradientButton
     title="Pay Now"
     onPress={() => setShowModal(true)}
     width={200}
     margintop={10}
-/>
-
+/> */}
             <GradientButton title="Complete" onPress={() => { }} />
 
             {showModal && (
@@ -142,10 +240,16 @@ const ServiceStatusScreen = ({ navigation, route }) => {
             </View> */}
 
             <View style={styles.modalButtons}>
-                <TouchableOpacity onPress={() => setShowModal(false)} style={styles.cancelButton}>
+                <TouchableOpacity onPress={() => {
+                    
+                    
+                    setShowModal(false)
+                }
+                   } style={styles.cancelButton}>
                     <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => {
+                    ConfirmBookingPayment()
                     // You can validate and send the cash amount here
                     setShowModal(false);
                 }} style={styles.confirmButton}>
@@ -242,7 +346,7 @@ const styles = StyleSheet.create({
         padding: 10,
         backgroundColor: '#f8f8f8',
         borderRadius: 8,
-        height: 150,
+        height: 120,
     },
     serviceRow: {
         flexDirection: 'row',
@@ -339,6 +443,18 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
     },
+    backIcon: {
+        height: 20,
+        width: 20,
+        marginTop: 5,
+        marginRight: 15,
+        resizeMode: 'contain'
+      },
+      title: {
+        fontSize: 20,
+        color: 'black'
+      },
+      backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
     
 
 });

@@ -7,7 +7,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
-  ScrollView
+  ScrollView,
+  Linking
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { updateBookingstatus } from '../redux/AuthSlice';
@@ -29,6 +30,13 @@ const RequestDetailScreen = ({ navigation,route }) => {
       email: 'user@gmail.com',
       address: 'BANGALORE, KARNATAKA, India, 560002',
     },
+  };
+
+  const handleCall = (phoneNumber) => {
+    const url = `tel:${phoneNumber}`;
+    Linking.openURL(url).catch(err => {
+      console.warn('Failed to make call:', err);
+    });
   };
 
   const handleStartPress = () => {
@@ -89,11 +97,11 @@ const RequestDetailScreen = ({ navigation,route }) => {
           </View>
         </View>
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.callBtn}>
+          <TouchableOpacity onPress={() => handleCall(serviceItem?.user?.mobile)} style={styles.callBtn}>
             <Image source={require('../assets/Calling.png')} style={styles.icon} />
             <Text style={styles.btnTextWhite}>Call</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.chatBtn}>
+          <TouchableOpacity onPress={() => navigation.navigate('MessageScreen', { bookingId: serviceItem?.booking_id, userId: serviceItem?.user_id, providerId: serviceItem?.provider_id })} style={styles.chatBtn}>
             <Image source={require('../assets/Chat.png')} style={styles.icon} />
             <Text style={styles.btnTextPrimary}>Chat</Text>
           </TouchableOpacity>
@@ -123,7 +131,7 @@ const RequestDetailScreen = ({ navigation,route }) => {
         <TouchableOpacity onPress={()=> handleStartPress()}  style={styles.startBtn}>
           <Text style={styles.btnTextWhite}>Start</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={()=>navigation.navigate('CancelBooking', { bookingId: 1 ,selectedBooking:serviceItem})} style={styles.cancelBtn}>
+        <TouchableOpacity onPress={()=>navigation.navigate('CancelBooking', { selectedBooking:serviceItem})} style={styles.cancelBtn}>
           <Text style={styles.btnTextPrimary}>Cancel</Text>
         </TouchableOpacity>
       </View>

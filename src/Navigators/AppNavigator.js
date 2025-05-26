@@ -13,19 +13,17 @@ import OtpVerificationScreen from '../screens/OtpVerificationScreen';
 import HomeScreen from '../screens/HomeScreen';
 import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 import ViewAllServicesScreen from '../screens/ViewAllServicesScreen';
-import ServiceDetailScreen from '../screens/ServiceDetailScreen';
+
 import AllRatingsScreen from '../screens/AllRatingsScreen';
-import BookingScreen from '../screens/BookingScreen';
-import BookingSummaryScreen from '../screens/BookingSummaryScreen';
+
 import CancelBookingScreen from '../screens/CancelBookingScreen';
-import RescheduleBookingScreen from '../screens/RescheduleBookingScreen';
-import ResheduleSummeryScreen from '../screens/ResheduleSummeryScreen';
+
 import RequestDetailScreen from '../screens/RequestDetailScreen';
 import TrackingScreen from '../screens/TrackingScreen';
 import EstimationScreen from '../screens/EstimationScreen';
 import ServiceStatusScreen from '../screens/ServiceStatusScreen';
 import AdditionalAmountScreen from '../screens/AdditionalAmountScreen';
-
+import MessageScreen from '../screens/MessageScreen';
 
 const Stack = createStackNavigator();
 
@@ -52,18 +50,17 @@ function AppStack() {
      
       <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
       <Stack.Screen name="ViewAllServices" component={ViewAllServicesScreen} />
-      <Stack.Screen name="ServiceDetail" component={ServiceDetailScreen} />
+     
       <Stack.Screen name="AllRatings" component={AllRatingsScreen} />
-      <Stack.Screen name="BookingScreen" component={BookingScreen} />
-      <Stack.Screen name="BookingSummary" component={BookingSummaryScreen} />
+    
       <Stack.Screen name="CancelBooking" component={CancelBookingScreen} />
-      <Stack.Screen name="RescheduleBooking" component={RescheduleBookingScreen} />
-      <Stack.Screen name="ResheduleSummery" component={ResheduleSummeryScreen} />
+    
       <Stack.Screen name="RequestDetails" component={RequestDetailScreen} />
       <Stack.Screen name="TrackingScreen" component={TrackingScreen} />
       <Stack.Screen name="EstimationScreen" component={EstimationScreen} />
       <Stack.Screen name="ServiceStatusScreen" component={ServiceStatusScreen} />
       <Stack.Screen name="AdditionalAmountScreen" component={AdditionalAmountScreen} />
+      <Stack.Screen name="MessageScreen" component={MessageScreen} />
      
 
     </Stack.Navigator>
