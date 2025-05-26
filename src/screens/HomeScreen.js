@@ -19,7 +19,7 @@ import {
 import Carousel from "react-native-snap-carousel";
 import { useDispatch, useSelector } from "react-redux";
 import messaging from '@react-native-firebase/messaging';
-import { updateFcmToken, fetchAllServiceTypes, fetchBanners ,sendServiceProviderLocation,fetchProviderDashboard,fetchUnassignedBookings,acceptBooking} from "../redux/AuthSlice";
+import { updateFcmToken, fetchAllServiceTypes, fetchBanners ,sendServiceProviderLocation,fetchProviderDashboard,fetchUnassignedBookings,acceptBooking,fetchBookingByFilter} from "../redux/AuthSlice";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -54,7 +54,7 @@ const HomeScreen = ({ navigation }) => {
   const carouselRef = useRef(null);
   const dispatch = useDispatch();
   const serviceTypes = useSelector((state) => state.auth.serviceTypes);
-  const { banners, loading, error ,dashboardDetails,unassignedBookings,acceptedBooking} = useSelector((state) => state.auth);
+  const { banners, loading, error ,dashboardDetails,unassignedBookings,acceptedBooking,bookings} = useSelector((state) => state.auth);
   const [isActive, setIsActive] = useState(true);
   const [providerid, setproviderid] = useState('');
 
@@ -163,6 +163,8 @@ const HomeScreen = ({ navigation }) => {
   
         dispatch(fetchProviderDashboard(user?.service_provider_id));
         dispatch(fetchUnassignedBookings(user?.service_provider_id));
+        dispatch(fetchBookingByFilter({ providerId: user?.service_provider_id, filterType: 'Latest', searchQuery: '' }));
+
         requestLocationPermission(); 
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -289,7 +291,7 @@ const HomeScreen = ({ navigation }) => {
           data={unassignedBookings}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
-            <View style={styles.serviceCard}>
+            <View  onPress={() => navigation.navigate('RequestDetails', { serviceItem: item })} style={styles.serviceCard}>
               <View style={styles.cardHeader}>
                 <Text style={styles.serviceTitle2}>{item?.service_name}</Text>
                 <Text style={styles.serviceId}>#{item?.booking_id}</Text>
@@ -338,22 +340,24 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         <FlatList
-          data={services}
+          data={bookings}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
-            <View style={styles.serviceRequestCard}>
-              <View style={styles.grayBox} />
+            <TouchableOpacity  onPress={() => navigation.navigate('RequestDetails', { serviceItem: item })} style={styles.serviceRequestCard}>
+              <View style={styles.grayBox} >
+              <Image source={{uri:item?.service_icon}} style={{width:'80%',height:'80%'}} />
+              </View>
               <View style={{
                 flex: 1,             // Takes up remaining space
                 // backgroundColor: "red",
                 padding: 10,         // Only this box gets padding
                 justifyContent: "center"
               }}>
-                <Text style={styles.serviceTitle}>{item?.title}</Text>
-                <Text style={styles.serviceMeta}>{item?.location}</Text>
-                <Text style={styles.serviceMeta}>{item?.time}</Text>
+                <Text style={styles.serviceTitle}>{item?.service_name}</Text>
+                <Text style={styles.serviceMeta}>{item?.address_details?.address_line1},{item?.address_details?.address_line2}</Text>
+                <Text style={styles.serviceMeta}>{item?.booked_date_time}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           )}
         />
       </ScrollView>
@@ -497,6 +501,8 @@ const styles = StyleSheet.create({
   grayBox: {
     width: 80,
     backgroundColor: "gray",
+    justifyContent:'center',
+    alignItems:'center'
   },
   // serviceRequestCard: {
   //   flexDirection: "row",

@@ -32,6 +32,7 @@ export const loginWithGoogle = createAsyncThunk(
 
       // Save token in AsyncStorage
       await AsyncStorage.setItem('authToken', data.token);
+      await AsyncStorage.setItem('userData', JSON.stringify(data.user));
 
       return data;
     } catch (error) {
@@ -782,9 +783,9 @@ export const fetchCities = createAsyncThunk(
     }
   }
 );
-export const cancelBooking = createAsyncThunk(
+export const updateBookingstatus = createAsyncThunk(
   'booking/cancelBooking',
-  async ({ bookingId }, { rejectWithValue }) => {
+  async ({ bookingId,booking_status }, { rejectWithValue }) => {
     try {
       const token = await AsyncStorage.getItem('authToken');
 
@@ -794,7 +795,7 @@ export const cancelBooking = createAsyncThunk(
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`, // Include if your API is protected
         },
-        body: JSON.stringify({ booking_status: 1 }),
+        body: JSON.stringify({ booking_status: booking_status }),
       });
 
       const data = await response.json();
@@ -1072,6 +1073,63 @@ export const acceptBooking = createAsyncThunk(
     }
   }
 );
+export const fetchBookingByFilter = createAsyncThunk(
+  'booking/fetchBookingByFilter',
+  async ({ providerId, filterType, searchQuery = '' }, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const response = await fetch(
+        `${BASE_URL}booking/fetch_by_provider/${providerId}?filter_type=${filterType}&search_query=${encodeURIComponent(searchQuery)}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: token ? `Bearer ${token}` : '',
+          },
+        }
+      );
+      const data = await response.json();
+      console.log(data, 'Booking Filter Response');
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch bookings');
+      }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong!');
+    }
+  }
+);
+export const createAdditionalAmount = createAsyncThunk(
+  'additionalAmount/create',
+  async (payload, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const response = await fetch(`${BASE_URL}additional_amount/create`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      console.log(data, 'Create Additional Amount Response');
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create additional amount');
+      }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong!');
+    }
+  }
+);
 
 
 const authSlice = createSlice({
@@ -1083,7 +1141,8 @@ const authSlice = createSlice({
     error: null,
     serviceDetails: null,
     dashboardDetails: null,
-    unassignedBookings:null
+    unassignedBookings:null,
+    bookings: [],
   },
   reducers: {
     logout: (state) => {
@@ -1293,7 +1352,31 @@ const authSlice = createSlice({
       .addCase(acceptBooking.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
+
+      .addCase(fetchBookingByFilter.pending, (state) => {
+        state.loading = true;
+        state.bookings = []; // Clear on every fetch
+      })
+      .addCase(fetchBookingByFilter.fulfilled, (state, action) => {
+        state.loading = false;
+        state.bookings = action.payload;
+      })
+      .addCase(fetchBookingByFilter.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(createAdditionalAmount.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(createAdditionalAmount.fulfilled, (state, action) => {
+        state.loading = false;
+        state.successMessage = action.payload.message;
+      })
+      .addCase(createAdditionalAmount.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
   },
 });
 

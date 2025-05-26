@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "466988466843-35sik5p5vtr26g7hfnins6ppdgile680.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.optima.technician",
+            "certificate_hash": "fa804dcdc339f68893d02b04a187ee7fa179e918"
+          }
+        },
+        {
           "client_id": "466988466843-pq38idt9trhv1r2gp41nrvtl00o7o2hc.apps.googleusercontent.com",
           "client_type": 3
         }

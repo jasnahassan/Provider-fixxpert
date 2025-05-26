@@ -1,30 +1,65 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import TextInputBox from '../components/TextInputBox';
+import { useDispatch } from 'react-redux';
+import { createAdditionalAmount } from '../redux/AuthSlice';
 
-const AdditionalAmountScreen = () => {
+const AdditionalAmountScreen = ({navigation,route}) => {
+  const { bookingItem } = route.params;
   const [amount, setAmount] = useState('');
   const [additionalAmount, setAdditionalAmount] = useState('');
   const [completionTime, setCompletionTime] = useState('');
   const [works, setWorks] = useState('');
   const [description, setDescription] = useState('');
+  const dispatch = useDispatch();
+
+
+  // const handleUpdate = () => {
+  //   // Handle form submission logic here
+  //   console.log({
+  //     amount,
+  //     additionalAmount,
+  //     completionTime,
+  //     works,
+  //     description,
+  //   });
+  // };
 
   const handleUpdate = () => {
-    // Handle form submission logic here
-    console.log({
-      amount,
-      additionalAmount,
-      completionTime,
-      works,
-      description,
-    });
+    if (!amount || !additionalAmount || !completionTime || !works || !description) {
+      alert('Please fill in all fields.');
+      return;
+    }
+  
+    const payload = {
+      additional_amount_id: parseInt(additionalAmount),
+      amount: parseFloat(amount),
+      booking_id: bookingItem?.booking_id,
+      description: description,
+      number_of_days_to_completed: 0,
+      number_of_hours_to_completed: parseInt(completionTime),
+    };
+  
+    dispatch(createAdditionalAmount(payload))
+      .unwrap()
+      .then(res => {
+        alert('Additional amount created successfully!');
+        console.log(res)
+        navigation.navigate('ServiceStatusScreen', { bookingItem:bookingItem, additionalAmountResponse: res })
+
+        // navigation.goBack();
+      })
+      .catch(err => {
+        alert(`Error: ${err}`);
+      });
   };
+  
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
        <View style={styles.idRow}>
         <Text style={styles.idLabel}>ID</Text>
-        <Text style={styles.idValue}>4545515</Text>
+        <Text style={styles.idValue}>#{bookingItem?.booking_id}</Text>
       </View>
 
       <TextInputBox

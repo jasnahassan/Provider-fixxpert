@@ -1,7 +1,10 @@
 import React, { useRef, useEffect } from "react";
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from "react-native";
-import { updateFcmToken, fetchAllServiceTypes } from "../redux/AuthSlice";
+import { updateFcmToken, fetchBookingByFilter } from "../redux/AuthSlice";
 import { useDispatch, useSelector } from "react-redux";
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const services = [
   { id: 1, name: "Plumbing" },
@@ -15,12 +18,43 @@ const services = [
 const ViewAllServicesScreen = ({ navigation, route }) => {
   const { title } = route.params || { title: "All Services" };
   const dispatch = useDispatch();
-  const serviceTypes = useSelector((state) => state.auth.serviceTypes);
+  const { banners, loading, error ,dashboardDetails,unassignedBookings,acceptedBooking,bookings} = useSelector((state) => state.auth);
+
+
+  const getUserData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('userData');
+      if (jsonValue != null) {
+        const user = JSON.parse(jsonValue);
+        console.log('User Data:', user);
+        return user;
+      }
+    } catch (e) {
+      console.error('Error fetching userData from AsyncStorage:', e);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const user = await getUserData();
+        console.log(user?.service_provider_id, 'userdatatt 123');
+       
+        dispatch(fetchBookingByFilter({ providerId: user?.service_provider_id, filterType: 'Latest', searchQuery: '' }));
+
+ 
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+  
+    fetchData();
+  }, [dispatch]);
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('RequestDetails', { serviceId: item?.service_type_id })}  style={styles.serviceRequestCard}>
+    <TouchableOpacity onPress={() => navigation.navigate('RequestDetails', { serviceItem: item })}  style={styles.serviceRequestCard}>
         <View style={styles.grayBox} >
-        <Image source={{ uri: item?.icon }} style={styles.serviceIcon} />
+        <Image source={{uri:item?.service_icon}} style={styles.serviceIcon} />
         </View>
               <View style={{
                 flex: 1,             // Takes up remaining space
@@ -28,9 +62,9 @@ const ViewAllServicesScreen = ({ navigation, route }) => {
                 padding: 10,         // Only this box gets padding
                 justifyContent: "center"
               }}>
-                <Text style={styles.serviceTitle}>{item?.service_type_name}</Text>
-                <Text style={styles.serviceMeta}>{item?.location}</Text>
-                <Text style={styles.serviceMeta}>{item?.time}</Text>
+                <Text style={styles.serviceTitle}>{item?.service_name}</Text>
+                <Text style={styles.serviceMeta}>{item?.address_details?.address_line1},{item?.address_details?.address_line2}</Text>
+                <Text style={styles.serviceMeta}>{item?.booked_date_time}</Text>
               </View>
       {/* <Image source={{ uri: item?.icon }} style={styles.serviceIcon} />
       <Text style={styles.serviceText}>{item?.service_type_name}</Text> */}
@@ -49,7 +83,7 @@ const ViewAllServicesScreen = ({ navigation, route }) => {
       {/* <Text style={styles.header}>{title}</Text> */}
 
       <FlatList
-        data={title== "All Services"?  serviceTypes?.service :serviceTypes?.emergency_service }
+        data={bookings}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}

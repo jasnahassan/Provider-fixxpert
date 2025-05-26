@@ -3,13 +3,47 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-na
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import TextInputBox from '../components/TextInputBox';
 import GradientButton from '../components/GradientButton';
+import { createAdditionalAmount } from '../redux/AuthSlice';
+import { useDispatch } from 'react-redux';
 
-const EstimationScreen = ({ navigation }) => {
+const EstimationScreen = ({ navigation,route }) => {
+  const { bookingItem } = route.params;
   const [amount, setAmount] = useState('');
   const [hours, setHours] = useState('');
   const [minutes, setMinutes] = useState('');
   const [description, setDescription] = useState('');
   const [imageUri, setImageUri] = useState(null); // ✅ new state
+  const dispatch = useDispatch();
+
+
+  const handleSave = () => {
+    if ( !amount || !hours || !minutes || !description) {
+      Alert.alert('Validation Error', 'Please fill in all fields .');
+      return;
+    }
+  
+    const payload = {
+      // additional_amount_id: parseInt(additionalAmount),
+      amount: parseFloat(amount),
+      booking_id: bookingItem?.booking_id,
+      description: description,
+      number_of_days_to_completed: parseInt(hours),
+      number_of_hours_to_completed: parseInt(minutes),
+    };
+  
+    dispatch(createAdditionalAmount(payload))
+      .unwrap()
+      .then(res => {
+        Alert.alert('Success', 'Estimation submitted!');
+        navigation.navigate('ServiceStatusScreen', {
+          bookingItem,
+          additionalAmountResponse: res, // Pass response
+        });
+      })
+      .catch(err => {
+        Alert.alert('Error', err);
+      });
+  };
 
   const handleImagePick = () => {
     Alert.alert(
@@ -56,10 +90,10 @@ const EstimationScreen = ({ navigation }) => {
       <TextInputBox placeholder="Amount" value={amount} onChangeText={setAmount} keyboardType="numeric" />
       <View style={styles.row}>
         <View style={{ flex: 1, marginRight: 5 }}>
-          <TextInputBox placeholder="Duration Hours" value={hours} onChangeText={setHours} keyboardType="numeric" />
+          <TextInputBox placeholder="Duration Days" value={hours} onChangeText={setHours} keyboardType="numeric" />
         </View>
         <View style={{ flex: 1, marginLeft: 5 }}>
-          <TextInputBox placeholder="Duration Mint" value={minutes} onChangeText={setMinutes} keyboardType="numeric" />
+          <TextInputBox placeholder="Duration Hours" value={minutes} onChangeText={setMinutes} keyboardType="numeric" />
         </View>
       </View>
       <TextInputBox 
@@ -69,7 +103,7 @@ const EstimationScreen = ({ navigation }) => {
         multiline={true} // ✅ enable multiline
       />
 
-      <GradientButton title="Save" onPress={() => navigation.navigate('ServiceStatusScreen')} />
+      <GradientButton title="Save" onPress={handleSave} />
     </View>
   );
 };

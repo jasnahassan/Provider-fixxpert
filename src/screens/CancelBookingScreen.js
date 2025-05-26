@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
-import { cancelBooking } from '../redux/AuthSlice';
+import { updateBookingstatus } from '../redux/AuthSlice';
 import GradientButton from '../components/GradientButton';
 
 
@@ -43,7 +43,7 @@ const CancelBookingScreen = ({ navigation }) => {
             return;
         }
 
-        dispatch(cancelBooking({ bookingId }))
+        dispatch(updateBookingstatus({ bookingId:bookingId,booking_status:4 }))
             .unwrap()
             .then(() => {
                 setSuccessModalVisible(true);

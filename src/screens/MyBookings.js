@@ -107,37 +107,48 @@
 // });
 
 // export default MyBookings;
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-// import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchBookingByFilter } from '../redux/AuthSlice'; // Adjust path if needed
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const dummyBookings = [
-  {
-    id: '1',
-    type: 'Plumbing',
-    status: 'Pending',
-    location: 'Bangalore, KAR, India, 560002',
-    date: '18 July 2025 at 11:30 AM',
-    name: 'Charlotte',
-    code: '#524545',
-    image: require('../assets/maintenance.png'), // Replace with your asset path
-  },
-  {
-    id: '2',
-    type: 'Cleaning',
-    status: 'Scheduled',
-    location: 'Chennai, TN, India, 600001',
-    date: '20 July 2025 at 3:00 PM',
-    name: 'Daniel',
-    code: '#524546',
-    image: require('../assets/maintenance.png'), // Replace with your asset path
-  },
-];
+const MyBookings = ({ navigation }) => {
+  const dispatch = useDispatch();
+  const [selectedStatus, setSelectedStatus] = useState('Latest');
 
-const MyBookings = ({navigation}) => {
-  const [selectedStatus, setSelectedStatus] = useState('Pending');
-  const filteredBookings = dummyBookings.filter(item => item.status === selectedStatus);
+  const { bookings, loading, error } = useSelector((state) =>state.auth); 
+
+  const getUserData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem('userData');
+      if (jsonValue != null) {
+        const user = JSON.parse(jsonValue);
+        console.log('User Data:', user);
+        return user;
+      }
+    } catch (e) {
+      console.error('Error fetching userData from AsyncStorage:', e);
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const user = await getUserData();
+        console.log(user?.service_provider_id, 'userdatatt 123');
+        // setproviderid(user?.service_provider_id)
+        dispatch(fetchBookingByFilter({ providerId: user?.service_provider_id, filterType: selectedStatus, searchQuery: '' }));
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+  
+    fetchData();
+  }, [selectedStatus, dispatch]);
+
+
 
   return (
     <View style={styles.container}>
@@ -148,53 +159,58 @@ const MyBookings = ({navigation}) => {
         dropdownIconColor="#093759"
         itemStyle={styles.pickerItem}
       >
-        <Picker.Item label="Pending" value="Pending" />
-        <Picker.Item label="Scheduled" value="Scheduled" />
+        <Picker.Item label="Latest" value="Latest" />
+        <Picker.Item label="OnGoing" value="OnGoing" />
         <Picker.Item label="Cancelled" value="Cancelled" />
-        <Picker.Item label="Emergency Services" value="Emergency" />
+        <Picker.Item label="Complete" value="Completed" />
       </Picker>
 
-      <FlatList
-        data={filteredBookings}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={()=>navigation.navigate('RequestDetails', { serviceId: item?.service_type_id })} style={styles.card}>
-            {/* Main Service Image */}
-            <Image source={item.image} style={styles.serviceImage} />
+      {loading && <Text>Loading...</Text>}
+      {/* {error && <Text style={{ color: 'red' }}>Error: {error}</Text>} */}
 
+      <FlatList
+        data={bookings}
+        keyExtractor={(item) => item?.booking_id}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('RequestDetails', { serviceItem: item })}
+            style={styles.card}
+          >
+            <Image source={{uri:item?.service_icon}} style={styles.serviceImage} />
             <Text style={styles.service}>{item.type}</Text>
             <Text style={styles.code}>{item.code}</Text>
 
-            {/* Location with Icon */}
             <View style={styles.row}>
-              {/* <Icon name="map-marker" size={16} color="#333" /> */}
-              <Image source={item.image} style={styles.serviceImage2} />
-              <Text style={styles.rowText}>{item.location}</Text>
+              <Image source={require('../assets/Locationred.png')} style={styles.serviceImage2} />
+              <Text style={styles.rowText}>{item?.address_details?.address_line1},{item?.address_details?.address_line2}</Text>
             </View>
 
-            {/* Date/Time with Icon */}
             <View style={styles.row}>
-            <Image source={item.image} style={styles.serviceImage2} />
-              <Text style={styles.rowText}>{item.date}</Text>
+              <Image source={require('../assets/Calendar.png')} style={styles.serviceImage2} />
+              <Text style={styles.rowText}>{item?.booked_date_time}</Text>
             </View>
 
-            {/* Name with Icon */}
             <View style={styles.row}>
-            <Image source={item.image} style={styles.serviceImage2} />
-              <Text style={styles.rowText}>{item.name}</Text>
+              <Image source={require('../assets/Profilered.png')} style={styles.serviceImage2} />
+              <Text style={styles.rowText}>{item?.user?.name}</Text>
             </View>
 
-            <TouchableOpacity style={styles.button}>
+            {/* <TouchableOpacity style={styles.button}>
               <Text style={styles.buttonText}>Cancel (30 sec)</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </TouchableOpacity>
         )}
       />
+
+{!loading && bookings.length === 0 && (
+  <Text style={{ textAlign: 'center', marginTop: 20 ,color:'black'}}>No bookings found.</Text>
+)}
     </View>
   );
 };
 
 export default MyBookings;
+
 
 const styles = StyleSheet.create({
   container: {

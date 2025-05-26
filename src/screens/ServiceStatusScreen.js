@@ -1,11 +1,20 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image ,TextInput} from 'react-native';
 import GradientButton from '../components/GradientButton';
 
-const ServiceStatusScreen = ({navigation}) => {
+const ServiceStatusScreen = ({ navigation, route }) => {
+    const { bookingItem, additionalAmountResponse } = route.params;
     const [isRunning, setIsRunning] = useState(false);
     const [seconds, setSeconds] = useState(0);
+    const [showModal, setShowModal] = useState(false);
+    const [cashAmount, setCashAmount] = useState('');
     const timerRef = useRef(null);
+    const serviceList = additionalAmountResponse?.description
+        ? additionalAmountResponse.description.split(/\n|,/).map(item => item.trim()).filter(Boolean)
+        : [];
+
+    const isPaid = additionalAmountResponse?.paid === 1;
+
 
     const formatTime = (s) => {
         const hrs = String(Math.floor(s / 3600)).padStart(2, '0');
@@ -30,7 +39,7 @@ const ServiceStatusScreen = ({navigation}) => {
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Service status</Text>
-            <Text style={styles.serviceName}>Plumbing</Text>
+            <Text style={styles.serviceName}>{bookingItem?.service_name}</Text>
 
             {/* Timer Section */}
             <View style={styles.timerCard}>
@@ -60,28 +69,93 @@ const ServiceStatusScreen = ({navigation}) => {
                     margintop={10}
                 />
             </View>
-<TouchableOpacity onPress={()=>navigation.navigate('AdditionalAmountScreen')}>
-    <Text style={{color:'black',fontSize:17}}>
-        Additional Amount
-    </Text>
-</TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('AdditionalAmountScreen', { bookingItem: bookingItem })}>
+                <Text style={{ color: 'black', fontSize: 17 }}>
+                    Additional Amount
+                </Text>
+            </TouchableOpacity>
             {/* Services List */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Services list</Text>
-                <Text style={styles.serviceItem}>- Regular Inspections</Text>
-                <Text style={styles.serviceItem}>- Drain Maintenance</Text>
-                <Text style={styles.serviceItem}>- Pipe Insulation</Text>
+                {serviceList.length > 0 ? (
+                    serviceList.map((item, index) => (
+                        <View key={index} style={styles.serviceRow}>
+                            <Image
+                                source={require('../assets/redcheck.png')}
+                                style={styles.bulletIcon}
+                            />
+                            <Text style={styles.serviceItem}>{item}</Text>
+                        </View>
+                    ))
+                ) : (
+                    <Text style={styles.serviceItem}>No services listed</Text>
+                )}
             </View>
+
 
             {/* Payment Info */}
             <View style={styles.paymentBox}>
-                <Text style={styles.paymentIcon}>❌</Text>
-                <Text style={styles.paymentText}>Payment not Received</Text>
+                <Image
+                    source={
+                        isPaid
+                            ? require('../assets/greencheck.png')  // ✅ Use green tick
+                            : require('../assets/delete.png') // ❌ Use red X
+                    }
+                    style={{ width: 30, height: 30, marginRight: 10, marginBottom: 10 }}
+                />
+                <Text style={styles.paymentText}>
+                    {isPaid ? 'Payment Received' : 'Payment not Received'}
+                </Text>
             </View>
 
             <Text style={styles.note}>⚠️ Customer needs to pay before service completion</Text>
 
+            <GradientButton
+    title="Pay Now"
+    onPress={() => setShowModal(true)}
+    width={200}
+    margintop={10}
+/>
+
             <GradientButton title="Complete" onPress={() => { }} />
+
+            {showModal && (
+    <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Payment verification</Text>
+            <Text style={styles.modalSubText}>
+                ⚠️ Online payment is not detected{'\n'}If customer paid in cash, please enter the amount below
+            </Text>
+
+            {/* <Text style={styles.customerName}>Customer: {bookingItem?.user_name || 'N/A'}</Text> */}
+            <Text style={styles.amountText}>₹ {additionalAmountResponse?.amount || '0'}</Text>
+{/* 
+            <View style={styles.inputBox}>
+                <Text>₹</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Enter the Amount"
+                    keyboardType="numeric"
+                    value={cashAmount}
+                    onChangeText={setCashAmount}
+                />
+            </View> */}
+
+            <View style={styles.modalButtons}>
+                <TouchableOpacity onPress={() => setShowModal(false)} style={styles.cancelButton}>
+                    <Text style={styles.cancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => {
+                    // You can validate and send the cash amount here
+                    setShowModal(false);
+                }} style={styles.confirmButton}>
+                    <Text style={styles.confirmText}>Confirm</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    </View>
+)}
+
         </View>
     );
 };
@@ -121,15 +195,15 @@ const styles = StyleSheet.create({
     sectionTitle: { fontWeight: 'bold', marginBottom: 5, color: 'black' },
     serviceItem: { marginLeft: 10, marginBottom: 3, color: 'black' },
 
-    paymentBox: {
-        backgroundColor: '#F0F0F0',
-        padding: 12,
-        borderRadius: 12,
-        marginTop: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 150,
-    },
+    // paymentBox: {
+    //     backgroundColor: 'red',
+    //     padding: 12,
+    //     borderRadius: 12,
+    //     marginTop: 20,
+    //     alignItems: 'center',
+    //     justifyContent: 'center',
+    //     height: 150,
+    // },
     paymentIcon: {
         fontSize: 16,
         color: 'red',
@@ -145,13 +219,128 @@ const styles = StyleSheet.create({
     timeColumn: {
         alignItems: 'center',
         marginHorizontal: 8,
-      },
-      
-      label: {
+    },
+
+    label: {
         fontSize: 12,
         color: '#888',
         marginTop: 4,
-      },
+    },
+    section: {
+        marginVertical: 16,
+    },
+
+    serviceItem: {
+        fontSize: 14,
+        color: '#333',
+        marginLeft: 10,
+    },
+    paymentBox: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 20,
+        padding: 10,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 8,
+        height: 150,
+    },
+    serviceRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 6,
+    },
+    bulletIcon: {
+        width: 16,
+        height: 16,
+        marginRight: 8,
+    },
+    serviceItem: {
+        fontSize: 14,
+        color: '#333',
+    },
+    modalOverlay: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 999,
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        width: '85%',
+        padding: 20,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#000',
+        marginBottom: 10,
+    },
+    modalSubText: {
+        fontSize: 13,
+        color: '#555',
+        textAlign: 'center',
+        marginBottom: 15,
+    },
+    customerName: {
+        fontSize: 14,
+        color: '#000',
+        marginBottom: 4,
+    },
+    amountText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 16,
+    },
+    inputBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        width: '100%',
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        marginBottom: 16,
+    },
+    input: {
+        marginLeft: 6,
+        flex: 1,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    cancelButton: {
+        flex: 1,
+        marginRight: 10,
+        paddingVertical: 10,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    cancelText: {
+        color: '#000',
+    },
+    confirmButton: {
+        flex: 1,
+        paddingVertical: 10,
+        backgroundColor: '#001f54',
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    confirmText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    
+
 });
 
 export default ServiceStatusScreen;
