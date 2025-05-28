@@ -90,12 +90,17 @@ const signInWithGoogle = async () => {
       google_client_id: '466988466843-pq38idt9trhv1r2gp41nrvtl00o7o2hc.apps.googleusercontent.com'
     })).unwrap();
 
+    console.log('response12353', response);
+    
+    // Alert.alert(response)
+
     if (response.token) {
       await saveAuthStatus(true);
       await saveFirstTimeStatus(true);
       navigation.replace('Main');
     } else {
-      Alert.alert("Login Failed", response.message || "Google login failed");
+      Alert.alert("Login Failed", response.error || "Google login failed");
+      navigation.navigate('Register')
     }
 
   } catch (error) {

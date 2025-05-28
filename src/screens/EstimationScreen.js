@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert,TouchableWithoutFeedback,Keyboard } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import TextInputBox from '../components/TextInputBox';
 import GradientButton from '../components/GradientButton';
-import { createAdditionalAmount } from '../redux/AuthSlice';
+import { createAdditionalAmount ,uploadProviderDocuments} from '../redux/AuthSlice';
 import { useDispatch } from 'react-redux';
 
 const EstimationScreen = ({ navigation,route }) => {
@@ -16,11 +16,37 @@ const EstimationScreen = ({ navigation,route }) => {
   const dispatch = useDispatch();
 
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if ( !amount || !hours || !minutes || !description) {
       Alert.alert('Validation Error', 'Please fill in all fields .');
       return;
     }
+    if ( !imageUri ) {
+      Alert.alert('Validation Error', 'Please upload an image ');
+      return;
+    }
+
+        // 1. Upload selfie (provider_id: 0)
+        const selfieFile = {
+          uri: imageUri,
+          type: 'image/jpeg',
+          name: 'selfie.jpg',
+        };
+  
+        const selfieResult = await dispatch(
+          uploadProviderDocuments({
+            provider_id: 0,
+            documents: [selfieFile],
+          })
+        );
+  
+       
+      if (!uploadProviderDocuments.fulfilled.match(selfieResult)) {
+        throw new Error('Selfie upload failed');
+      }
+  
+      const selfieUploadData = selfieResult.payload;
+      const profileImagePath = selfieUploadData?.[0]?.path
   
     const payload = {
       // additional_amount_id: parseInt(additionalAmount),
@@ -29,12 +55,13 @@ const EstimationScreen = ({ navigation,route }) => {
       description: description,
       number_of_days_to_completed: parseInt(hours),
       number_of_hours_to_completed: parseInt(minutes),
+      image:profileImagePath
     };
   
     dispatch(createAdditionalAmount(payload))
       .unwrap()
       .then(res => {
-        Alert.alert('Success', 'Estimation submitted!');
+        Alert.alert('Success', 'Additional amount submitted!');
         navigation.navigate('ServiceStatusScreen', {
           bookingItem,
           additionalAmountResponse: res, // Pass response
@@ -73,6 +100,7 @@ const EstimationScreen = ({ navigation,route }) => {
   };
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <View style={styles.container}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Image source={require('../assets/back-arrow.png')} style={styles.backIcon} />
@@ -104,11 +132,15 @@ const EstimationScreen = ({ navigation,route }) => {
         placeholder="Description of service" 
         value={description} 
         onChangeText={setDescription} 
+        keyboardType="default"
         multiline={true} // ✅ enable multiline
+        returnKeyType="done"
+        blurOnSubmit={true}
       />
 
       <GradientButton title="Save" onPress={handleSave} />
     </View>
+  </TouchableWithoutFeedback>
   );
 };
 

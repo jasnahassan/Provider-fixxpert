@@ -5,42 +5,111 @@ import { Platform } from 'react-native';
 const BASE_URL = 'http://65.1.185.205:5000/api/';
 
 // Google Login API Call
+
 export const loginWithGoogle = createAsyncThunk(
   'auth/loginWithGoogle',
   async ({ token, google_client_id }, { rejectWithValue }) => {
     try {
-
-      console.log(token, google_client_id,'here got ?')
       const response = await fetch(`${BASE_URL}provider/login_google`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          token,
-          google_client_id,
-        }),
+        body: JSON.stringify({ token, google_client_id }),
       });
 
       const data = await response.json();
-      console.log("Google Login Response:", data);
+      const statusCode = response.status;
 
-      if (!response.ok || !data.token) {
-        throw new Error(data.message || 'Google login failed');
+      if(data.token){
+        await AsyncStorage.setItem('authToken', data.token);
+        await AsyncStorage.setItem('userData', JSON.stringify(data.user));
       }
-
-      // Save token in AsyncStorage
-      await AsyncStorage.setItem('authToken', data.token);
-      await AsyncStorage.setItem('userData', JSON.stringify(data.user));
-
-      return data;
+     
+      return { ...data, statusCode };
     } catch (error) {
-      console.error("Google Login Error:", error);
-      return rejectWithValue(error.message || 'Something went wrong!');
+      return rejectWithValue({ message: error.message || 'Something went wrong!' });
     }
   }
 );
+
+// export const loginWithGoogle = createAsyncThunk(
+//   'auth/loginWithGoogle',
+//   async ({ token, google_client_id }, { rejectWithValue }) => {
+//     try {
+//       const response = await fetch(`${BASE_URL}provider/login_google`, {
+//         method: 'POST',
+//         headers: {
+//           'Accept': 'application/json',
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({ token, google_client_id }),
+//       });
+
+//       const data = await response.json();
+//       const statusCode = response.status;
+//             // Save token in AsyncStorage
+//       await AsyncStorage.setItem('authToken', data.token);
+//       await AsyncStorage.setItem('userData', JSON.stringify(data.user));
+
+//       console.log('Google Login Response:', data);
+//       console.log('Response Status Code:', statusCode);
+
+//       return { ...data, statusCode }; // always return status code with data
+
+//     } catch (error) {
+//       console.error("Google Login Error:", error);
+//       return rejectWithValue(error.message || 'Something went wrong!');
+//     }
+//   }
+// );
+
+// export const loginWithGoogle = createAsyncThunk(
+//   'auth/loginWithGoogle',
+//   async ({ token, google_client_id }, { rejectWithValue }) => {
+//     try {
+
+//       console.log(token, google_client_id,'here got ?')
+//       const response = await fetch(`${BASE_URL}provider/login_google`, {
+//         method: 'POST',
+//         headers: {
+//           'Accept': 'application/json',
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({
+//           token,
+//           google_client_id,
+//         }),
+//       });
+
+//       const data = await response.json();
+//       console.log("Google Login Response:", data);
+
+//       if (!response.ok || !data.token) {
+//         throw new Error(data.message || 'Google login failed');
+//       }
+
+//       const statusCode = response.status;
+//       console.log('Response Status Code:', statusCode)
+
+//       if (statusCode === 200 || statusCode === 201) {
+//         return data; // Return the response data if successful
+//       } else {
+//         throw new Error(data?.error);
+//       }
+
+//       // Save token in AsyncStorage
+//       await AsyncStorage.setItem('authToken', data.token);
+//       await AsyncStorage.setItem('userData', JSON.stringify(data.user));
+
+//       return data;
+//     } catch (error) {
+//       console.error("Google Login Error:", error);
+//       return rejectWithValue(error.message || 'Something went wrong!');
+//     }
+//   }
+// );
 
 // Update FCM Token API Call
 export const updateFcmToken = createAsyncThunk(
@@ -799,7 +868,7 @@ export const updateBookingstatus = createAsyncThunk(
       });
 
       const data = await response.json();
-      console.log('Cancel booking response:', data);
+      console.log('booking response:', data);
 
       if (!response.ok) {
         throw new Error(data?.error || 'Cancel booking failed');
@@ -1132,6 +1201,40 @@ export const createAdditionalAmount = createAsyncThunk(
     }
   }
 );
+
+export const updateAdditionalAmount = createAsyncThunk(
+  'additionalAmount/update',
+  async ({ payload, additional_amount_id }, { rejectWithValue }) => {
+    try {
+      console.log(payload, additional_amount_id, 'update value');
+      const token = await AsyncStorage.getItem('authToken');
+
+      const response = await fetch(`${BASE_URL}additional_amount/update/${additional_amount_id}`, {
+        method: 'PUT',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      console.log(data, 'Update Additional Amount Response');
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update additional amount');
+      }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong!');
+    }
+  }
+);
+
+
+
 export const createPaymentHistory = createAsyncThunk(
   'payment/createPaymentHistory',
   async (paymentData, { rejectWithValue }) => {
@@ -1292,6 +1395,33 @@ export const Activateprovider = createAsyncThunk(
   }
 );
 
+export const fetchAdditionalAmount = createAsyncThunk(
+  'booking/fetchAdditionalAmount',
+  async (bookingId, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const response = await fetch(`${BASE_URL}additional_amount/fetch/${bookingId}`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : '',
+        },
+      });
+
+      const data = await response.json();
+      console.log('Fetched Additional Amount:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch additional amount');
+      }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong');
+    }
+  }
+);
 
 const authSlice = createSlice({
   name: 'auth',
@@ -1305,6 +1435,9 @@ const authSlice = createSlice({
     unassignedBookings:null,
     bookings: [],
     messages: [],
+    additionalAmount: [],
+    loadingAdditionalAmount: false,
+    additionalAmountError: null,
   },
   reducers: {
     logout: (state) => {
@@ -1562,6 +1695,18 @@ const authSlice = createSlice({
       .addCase(createMessage.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchAdditionalAmount.pending, (state) => {
+        state.loadingAdditionalAmount = true;
+        state.additionalAmountError = null;
+      })
+      .addCase(fetchAdditionalAmount.fulfilled, (state, action) => {
+        state.loadingAdditionalAmount = false;
+        state.additionalAmount = action.payload;
+      })
+      .addCase(fetchAdditionalAmount.rejected, (state, action) => {
+        state.loadingAdditionalAmount = false;
+        state.additionalAmountError = action.payload;
       })
   },
 });

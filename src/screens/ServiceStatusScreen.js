@@ -1,9 +1,9 @@
-import React, { useState, useRef ,useEffect} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image ,TextInput} from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
 import GradientButton from '../components/GradientButton';
 import RazorpayCheckout from 'react-native-razorpay';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createPaymentHistory ,updateBookingstatus} from '../redux/AuthSlice';
+import { createPaymentHistory, updateBookingstatus, fetchAdditionalAmount, updateAdditionalAmount } from '../redux/AuthSlice';
 import { useDispatch, useSelector } from "react-redux";
 
 const ServiceStatusScreen = ({ navigation, route }) => {
@@ -15,12 +15,21 @@ const ServiceStatusScreen = ({ navigation, route }) => {
     const [cashAmount, setCashAmount] = useState('');
     const [userdetails, setUserdetails] = useState('');
     const timerRef = useRef(null);
+    const additionalAmount = useSelector(state => state.auth.additionalAmount);
+
     const serviceList = additionalAmountResponse?.description
         ? additionalAmountResponse.description.split(/\n|,/).map(item => item.trim()).filter(Boolean)
         : [];
 
     const isPaid = additionalAmountResponse?.paid === 1;
 
+    const totalAmount = additionalAmount?.reduce((sum, item) => {
+        return sum + parseFloat(item.amount);
+    }, 0);
+
+    const unpaidItems = additionalAmount?.filter(item => item.paid === 0) || [];
+    const pendingAmount = unpaidItems.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+    const allPaid = unpaidItems.length === 0;
 
     const formatTime = (s) => {
         const hrs = String(Math.floor(s / 3600)).padStart(2, '0');
@@ -28,6 +37,12 @@ const ServiceStatusScreen = ({ navigation, route }) => {
         const secs = String(s % 60).padStart(2, '0');
         return { hrs, mins, secs };
     };
+
+    useEffect(() => {
+        if (bookingItem?.booking_id) {
+            dispatch(fetchAdditionalAmount(bookingItem?.booking_id));
+        }
+    }, [bookingItem, dispatch])
 
     const handleTimerToggle = () => {
         if (isRunning) {
@@ -44,39 +59,40 @@ const ServiceStatusScreen = ({ navigation, route }) => {
 
     const getUserData = async () => {
         try {
-          const jsonValue = await AsyncStorage.getItem('userData');
-          if (jsonValue != null) {
-            const user = JSON.parse(jsonValue);
-            console.log('User Data:', user);
-            // console.log('User Data service:', serviceDetails);
-            // setFinalAmount(serviceDetails?.basic_amount)
-            return user;
-          }
+            const jsonValue = await AsyncStorage.getItem('userData');
+            if (jsonValue != null) {
+                const user = JSON.parse(jsonValue);
+                console.log('User Data:', user);
+                console.log('User addamount', additionalAmount);
+                // console.log('User Data service:', serviceDetails);
+                // setFinalAmount(serviceDetails?.basic_amount)
+                return user;
+            }
         } catch (e) {
-          console.error('Error fetching userData from AsyncStorage:', e);
+            console.error('Error fetching userData from AsyncStorage:', e);
         }
-      };
-      useEffect(() => {
+    };
+    useEffect(() => {
         const fetchUser = async () => {
-          const user = await getUserData();
-          console.log(user, 'userdata')
-          setUserdetails(user)
-    
+            const user = await getUserData();
+            console.log(user, 'userdata')
+            setUserdetails(user)
+
         };
         fetchUser();
-    
-      }, [dispatch])
+
+    }, [dispatch])
 
 
     const ConfirmBookingPayment = async () => {
         try {
-        //   const totalAmount = additionalAmount.reduce((sum, item) => {
-        //     return sum + parseFloat(item.amount);
-        //   }, 0);
-    
-          const amountInPaise = additionalAmountResponse?.amount * 100;
-          // const amountInPaise = additionalAmount[0].amount * 100;
-    
+            //   const totalAmount = additionalAmount.reduce((sum, item) => {
+            //     return sum + parseFloat(item.amount);
+            //   }, 0);
+
+            const amountInPaise = additionalAmountResponse?.amount * 100;
+            // const amountInPaise = additionalAmount[0].amount * 100;
+
             const options = {
                 description: 'Service Booking Payment',
                 image: 'https://media-hosting.imagekit.io/48237198e4264b42/f4x.png?Expires=1841417217&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=mtzLy7P-JFKwcbdxZLAseEUXV2vqtwcxVPIpPc5t~Saa9eedJ7zUy7JO7-YkaWlnrHuwYgCv6MGmNSL8ocvr~22BLlmLfnYY7pt44nw4dSOIgntAMtzBu~MN3gS-KDJCT0lnw6OSnIP9Zz8SDeBSuCxCHs9cwDalI6FtHP8ONwLx7RRkOjmZCB9v46~xlh2nuAQTjWbhWP0eB2YWw9PNUdcGcVH9jRAI~cDth1fKJdRoiMtC0nnW6ETYHdi24qse-F0WLbaINBhXhAYmAF2oHkYi45LgSx3hW5ay4rVuTPTjpdQL4Qgn2rsULcmzCEM5vJitUKVw91ZPB2cqHtvcAA__',
@@ -91,11 +107,11 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                 },
                 theme: { color: '#DB3043' }
             };
-    
+
             RazorpayCheckout.open(options)
                 .then(async (paymentData) => {
                     console.log('✅ Payment Success', paymentData);
-    
+
                     const paidOn = new Date().toISOString().split('.')[0];
                     const paymentHistoryData = {
                         booking_id: bookingItem?.booking_id,
@@ -103,36 +119,60 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                         description: 'Payment for service booking',
                         payment_type: 1,
                         paid_on: paidOn,
-                      amount: additionalAmountResponse?.amount?.toString(),
+                        amount: additionalAmountResponse?.amount?.toString(),
                         razorpay_id: paymentData?.razorpay_payment_id || '',
                         additional_amount_id: null,
                     };
-    
+
                     const response = await dispatch(createPaymentHistory(paymentHistoryData)).unwrap();
                     console.log("✅ Payment History Created:", response);
-                //   dispatch(StatusUpdate({ bookingId: bookingId, bookingstatus: 12 }))
-                dispatch(updateBookingstatus({ bookingId:bookingItem?.booking_id,booking_status:12 }))
-                //   dispatch(fetchBookingHistoryById(bookingId));
-                    
+                    //   dispatch(StatusUpdate({ bookingId: bookingId, bookingstatus: 12 }))
+                    dispatch(updateBookingstatus({ bookingId: bookingItem?.booking_id, booking_status: 12 }))
+
+                    const payload = {
+                        amount: parseFloat(additionalAmountResponse.amount),
+                        booking_id: bookingItem?.booking_id,
+                        description: additionalAmountResponse?.description,
+                        number_of_days_to_completed: additionalAmountResponse?.number_of_days_to_completed,
+                        number_of_hours_to_completed: parseInt(additionalAmountResponse?.number_of_hours_to_completed),
+                        paid: 1
+                    };
+
+                    dispatch(updateAdditionalAmount({ payload, additional_amount_id: additionalAmountResponse?.additional_amount_id }))
+                        .unwrap()
+                        .then(res => {
+                            Alert.alert('Additional amount created successfully!');
+                            console.log(res)
+                            dispatch(fetchAdditionalAmount(bookingItem?.booking_id));
+
+                            // navigation.goBack();
+                        })
+                        .catch(err => {
+                            console.error('❌ Update Error:', err);
+                            Alert.alert(`Error: ${err}`);
+                        });
+
+                    //   dispatch(fetchBookingHistoryById(bookingId));
+
                 })
                 .catch((error) => {
                     console.error("❌ Payment Failed:", error);
                     Alert.alert("Payment Failed", error);
                 });
-    
+
         } catch (err) {
             console.error("❌ Something went wrong:", err);
             Alert.alert('Error', 'Something went wrong during payment.');
         }
     };
-    
+
 
     return (
         <View style={styles.container}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Image source={require('../assets/back-arrow.png')} style={styles.backIcon} />
-          <Text style={styles.title}>Service status</Text>
-        </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <Image source={require('../assets/back-arrow.png')} style={styles.backIcon} />
+                <Text style={styles.title}>Service status</Text>
+            </TouchableOpacity>
             {/* <Text style={styles.header}>Service status</Text> */}
             <Text style={styles.serviceName}>{bookingItem?.service_name}</Text>
 
@@ -164,11 +204,11 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                     margintop={10}
                 />
             </View>
-            {/* <TouchableOpacity onPress={() => navigation.navigate('AdditionalAmountScreen', { bookingItem: bookingItem })}>
+            <TouchableOpacity onPress={() => navigation.navigate('AdditionalAmountScreen', { bookingItem: bookingItem,additionalAmountResponse:additionalAmountResponse })}>
                 <Text style={{ color: 'black', fontSize: 17 }}>
                     Additional Amount
                 </Text>
-            </TouchableOpacity> */}
+            </TouchableOpacity>
             {/* Services List */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Services list</Text>
@@ -192,42 +232,69 @@ const ServiceStatusScreen = ({ navigation, route }) => {
             <View style={styles.paymentBox}>
                 <Image
                     source={
-                        isPaid
+                        allPaid
                             ? require('../assets/greencheck.png')  // ✅ Use green tick
                             : require('../assets/delete.png') // ❌ Use red X
                     }
                     style={{ width: 30, height: 30, marginRight: 10, marginBottom: 10 }}
                 />
                 <Text style={styles.paymentText}>
-                    {isPaid ? 'Payment Received' : 'Payment not Received'}
+                    {allPaid ? 'Payment Received' : 'Payment not Received'}
                 </Text>
             </View>
 
             <Text style={styles.note}>⚠️ Customer needs to pay before service completion</Text>
             {/* <Text style={styles.note}> if offline paid</Text> */}
-            <TouchableOpacity onPress={() => setShowModal(true)} style={{width:90,height:30,backgroundColor:'blue',justifyContent:'center',alignItems:'center'}}>
-            <Text style={{color:'white'}}>Pay now</Text>
+            <TouchableOpacity onPress={() => setShowModal(true)} style={{ width: 90, height: 30, backgroundColor: 'blue', justifyContent: 'center', alignItems: 'center' }}>
+                <Text style={{ color: 'white' }}>Pay now</Text>
             </TouchableOpacity>
-{/* 
+            {/* 
             <GradientButton
     title="Pay Now"
     onPress={() => setShowModal(true)}
     width={200}
     margintop={10}
 /> */}
-            <GradientButton title="Complete" onPress={() => { }} />
+            {/* <GradientButton title="Complete" onPress={() => {
+                console.log(allPaid,'here')
+                { allPaid ? dispatch(updateBookingstatus({ bookingId: bookingItem?.booking_id, booking_status: 13 })) : Alert.alert('Please do pending payments to complete ') }
+            }} /> */}
+            <GradientButton
+                title="Complete"
+                onPress={() => {
+                    console.log(allPaid, 'here');
+                    if (allPaid) {
+                        dispatch(updateBookingstatus({ bookingId: bookingItem?.booking_id, booking_status: 13 }))
+                            .unwrap()
+                            .then(res => {
+                                Alert.alert('Bokking completed successfully!');
+                                navigation.navigate('Main')
+
+                                // navigation.goBack();
+                            })
+                            .catch(err => {
+                                console.error('❌ Update Error:', err);
+                                Alert.alert(`Error: ${err}`);
+                            });
+
+                    } else {
+                        Alert.alert('Please do pending payments to complete');
+                    }
+                }}
+            />
 
             {showModal && (
-    <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Payment verification</Text>
-            <Text style={styles.modalSubText}>
-                ⚠️ Online payment is not detected{'\n'}If customer paid in cash, please enter the amount below
-            </Text>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Payment verification</Text>
+                        <Text style={styles.modalSubText}>
+                            ⚠️ Online payment is not detected{'\n'}If customer paid in cash, please enter the amount below
+                        </Text>
 
-            {/* <Text style={styles.customerName}>Customer: {bookingItem?.user_name || 'N/A'}</Text> */}
-            <Text style={styles.amountText}>₹ {additionalAmountResponse?.amount || '0'}</Text>
-{/* 
+                        {/* <Text style={styles.customerName}>Customer: {bookingItem?.user_name || 'N/A'}</Text> */}
+                        {/* <Text style={styles.amountText}>₹ {additionalAmountResponse?.amount || '0'}</Text> */}
+                        <Text style={styles.amountText}>₹ {additionalAmountResponse?.amount}</Text>
+                        {/* 
             <View style={styles.inputBox}>
                 <Text>₹</Text>
                 <TextInput
@@ -239,26 +306,26 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                 />
             </View> */}
 
-            <View style={styles.modalButtons}>
-                <TouchableOpacity onPress={() => {
-                    
-                    
-                    setShowModal(false)
-                }
-                   } style={styles.cancelButton}>
-                    <Text style={styles.cancelText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => {
-                    ConfirmBookingPayment()
-                    // You can validate and send the cash amount here
-                    setShowModal(false);
-                }} style={styles.confirmButton}>
-                    <Text style={styles.confirmText}>Confirm</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
-    </View>
-)}
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity onPress={() => {
+
+
+                                setShowModal(false)
+                            }
+                            } style={styles.cancelButton}>
+                                <Text style={styles.cancelText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => {
+                                ConfirmBookingPayment()
+                                // You can validate and send the cash amount here
+                                setShowModal(false);
+                            }} style={styles.confirmButton}>
+                                <Text style={styles.confirmText}>Confirm</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            )}
 
         </View>
     );
@@ -449,13 +516,13 @@ const styles = StyleSheet.create({
         marginTop: 5,
         marginRight: 15,
         resizeMode: 'contain'
-      },
-      title: {
+    },
+    title: {
         fontSize: 20,
         color: 'black'
-      },
-      backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
-    
+    },
+    backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
+
 
 });
 

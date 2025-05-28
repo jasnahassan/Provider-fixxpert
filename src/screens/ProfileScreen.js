@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import TextInputBox from '../components/TextInputBox';
 import GradientButton from '../components/GradientButton';
 import { useDispatch } from 'react-redux';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 // import RNFS from 'react-native-fs';
 // import FileViewer from 'react-native-file-viewer';
 
@@ -39,6 +40,17 @@ const ProfileScreen = ({ navigation }) => {
 
   const dispatch = useDispatch();
 
+  const googleLogout = async () => {
+    try {
+      await GoogleSignin.revokeAccess(); // Optional, removes access token
+      await GoogleSignin.signOut();
+      console.log('User signed out from Google');
+  
+      // Optional: Clear any local user state
+    } catch (error) {
+      console.error('Error signing out from Google:', error);
+    }
+  };
 
   const handleSave = async () => {
     if (!userdetails?.service_provider_id) {
@@ -375,6 +387,7 @@ const ProfileScreen = ({ navigation }) => {
   const logoutHandler2 = async () => {
     try {
       await AsyncStorage.clear();
+      googleLogout()
       navigation.reset({
         index: 0,
         routes: [{ name: 'Auth' }],

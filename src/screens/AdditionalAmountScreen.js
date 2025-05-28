@@ -1,19 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect} from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import TextInputBox from '../components/TextInputBox';
 import { useDispatch } from 'react-redux';
-import { createAdditionalAmount } from '../redux/AuthSlice';
+import { createAdditionalAmount,updateAdditionalAmount } from '../redux/AuthSlice';
 
 const AdditionalAmountScreen = ({navigation,route}) => {
-  const { bookingItem } = route.params;
-  const [amount, setAmount] = useState('');
-  const [additionalAmount, setAdditionalAmount] = useState('');
-  const [completionTime, setCompletionTime] = useState('');
-  const [works, setWorks] = useState('');
-  const [description, setDescription] = useState('');
+  const { bookingItem ,additionalAmountResponse} = route.params;
+  const [amount, setAmount] = useState(additionalAmountResponse?.amount);
+  const [additionalAmount, setAdditionalAmount] = useState(additionalAmountResponse.amount);
+  const [completionTime, setCompletionTime] = useState(additionalAmountResponse.amount);
+  const [works, setWorks] = useState(additionalAmountResponse.amount);
+  const [description, setDescription] = useState(additionalAmountResponse?.description);
   const dispatch = useDispatch();
 
-
+useEffect(()=>{
+console.log(additionalAmountResponse,'heree resp')
+},[])
   // const handleUpdate = () => {
   //   // Handle form submission logic here
   //   console.log({
@@ -32,15 +34,16 @@ const AdditionalAmountScreen = ({navigation,route}) => {
     }
   
     const payload = {
-      additional_amount_id: parseInt(additionalAmount),
+      // additional_amount_id: parseInt(additionalAmount),
       amount: parseFloat(amount),
       booking_id: bookingItem?.booking_id,
       description: description,
-      number_of_days_to_completed: 0,
+      number_of_days_to_completed: works,
       number_of_hours_to_completed: parseInt(completionTime),
     };
   
-    dispatch(createAdditionalAmount(payload))
+    dispatch(updateAdditionalAmount({ payload, additional_amount_id: additionalAmountResponse?.additional_amount_id }))
+
       .unwrap()
       .then(res => {
         alert('Additional amount created successfully!');
@@ -69,19 +72,27 @@ const AdditionalAmountScreen = ({navigation,route}) => {
         keyboardType="numeric"
       />
 
-      <TextInputBox
+      {/* <TextInputBox
         placeholder="Additional Amount"
         value={additionalAmount}
         onChangeText={setAdditionalAmount}
         keyboardType="numeric"
-      />
+      /> */}
 
-      <TextInputBox
+      {/* <TextInputBox
         placeholder="Completion time"
         value={completionTime}
         onChangeText={setCompletionTime}
         keyboardType="numeric"
-      />
+      /> */}
+      <View style={styles.row}>
+        <View style={{ flex: 1, marginRight: 5 }}>
+          <TextInputBox placeholder="Duration Days" value={works} onChangeText={setWorks} keyboardType="numeric" />
+        </View>
+        <View style={{ flex: 1, marginLeft: 5 }}>
+          <TextInputBox placeholder="Duration Hours" value={completionTime} onChangeText={setCompletionTime} keyboardType="numeric" />
+        </View>
+      </View>
 
       <TextInputBox
         placeholder="Works"
@@ -145,6 +156,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#D22B2B',
   },
+  row: { flexDirection: 'row', justifyContent: 'space-between' }
 });
 
 export default AdditionalAmountScreen;
