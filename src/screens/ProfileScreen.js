@@ -237,12 +237,12 @@ const ProfileScreen = ({ navigation }) => {
   }
 
   const openPrivacyPolicy = () => {
-    Linking.openURL('http://65.1.185.205:5000/documents/privacypolicy.pdf')
+    Linking.openURL('http://65.1.185.205:5000/documents/technicianPrivacyPolicy.pdf')
       .catch(err => console.error("Failed to open URL:", err));
   };
 
   const openTerms = () => {
-    Linking.openURL('http://65.1.185.205:5000/documents/termsandconditions.pdf')
+    Linking.openURL('http://65.1.185.205:5000/documents/tecnicianTermsAndConditions.pdf')
       .catch(err => console.error("Failed to open URL:", err));
   };
 

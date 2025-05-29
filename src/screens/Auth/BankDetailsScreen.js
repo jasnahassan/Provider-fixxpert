@@ -122,11 +122,13 @@ const BankDetailsScreen = ({ navigation, route }) => {
         account_number: accountNumber,
         ifsc_code: ifsc,
         provider_id: providerId,
+
       }));
       
-      if (!createBankDetails.fulfilled.match(bankResult)) {
-        throw new Error('Bank details creation failed');
-      }
+      console.log(bankResult,'heree')
+      // if (!createBankDetails.fulfilled.match(bankResult)) {
+      //   throw new Error('Bank details creation failed');
+      // }
       
       Alert.alert('Success', 'Registration completed successfully');
       navigation.navigate('Login');

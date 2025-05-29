@@ -86,17 +86,34 @@ const HomeScreen = ({ navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
-      const onBackPress = () => {
-        // Prevent going back from HomeScreen
-        return true;
-      };
-  
+      const onBackPress = () => true;
       BackHandler.addEventListener('hardwareBackPress', onBackPress);
   
-      // Clean up the event listener when screen loses focus
-      return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      // Fetch location permission and current location when screen is focused
+      requestLocationPermission();
+  
+      return () => {
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      };
     }, [])
   );
+  useEffect(()=>{
+    requestLocationPermission();
+  },[])
+  
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     const onBackPress = () => {
+  //       // Prevent going back from HomeScreen
+  //       return true;
+  //     };
+  
+  //     BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  
+  //     // Clean up the event listener when screen loses focus
+  //     return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  //   }, [])
+  // );
 
   const requestLocationPermission = async () => {
     try {
@@ -125,6 +142,8 @@ const HomeScreen = ({ navigation }) => {
       console.warn(err);
     }
   };
+
+
   const getCurrentLocation = async() => {
     const user = await getUserData();
         console.log(user?.service_provider_id, 'userdatatt')

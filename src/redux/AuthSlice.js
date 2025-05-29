@@ -998,14 +998,17 @@ export const uploadProviderDocuments = createAsyncThunk(
 export const createBankDetails = createAsyncThunk(
   'bank/createBankDetails',
   async ({ bank_name, account_holder_name, account_number, ifsc_code, provider_id }, { rejectWithValue }) => {
-    console.log('Creating bank details:', bank_name, account_holder_name, account_number, ifsc_code);
+    console.log('Creating bank details:', bank_name, account_holder_name, account_number, ifsc_code,provider_id);
 
     try {
+
+      const token = await AsyncStorage.getItem('authToken');
       const response = await fetch(`${BASE_URL}bank/create`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
         },
         body: JSON.stringify({
           bank_name,
