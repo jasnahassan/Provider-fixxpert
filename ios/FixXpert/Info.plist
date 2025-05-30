@@ -56,6 +56,15 @@
 <string>We need your permission to use the camera</string>
 <key>NSPhotoLibraryUsageDescription</key>
 <string>We need your permission to access the photo library</string>
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>We need your location to update your tracking status.</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>We need your location to update your tracking status.</string>
+<key>UIBackgroundModes</key>
+<array>
+  <string>location</string>
+  <string>fetch</string>
+</array>
 	<false/>
 </dict>
 </plist>

@@ -47,10 +47,15 @@ const EstimationScreen = ({ navigation,route }) => {
   
       const selfieUploadData = selfieResult.payload;
       const profileImagePath = selfieUploadData?.[0]?.path
+
+      const originalAmount = parseFloat(amount);
+const gstAmount = parseFloat((originalAmount * 0.18).toFixed(2));
+const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
   
     const payload = {
       // additional_amount_id: parseInt(additionalAmount),
-      amount: parseFloat(amount),
+      // amount: parseFloat(amount),
+      amount: parseFloat((parseFloat(amount) * 1.18).toFixed(2)),
       booking_id: bookingItem?.booking_id,
       description: description,
       number_of_days_to_completed: parseInt(hours),
@@ -119,7 +124,17 @@ const EstimationScreen = ({ navigation,route }) => {
         )}
       </TouchableOpacity>
 
-      <TextInputBox placeholder="Amount" value={amount} onChangeText={setAmount} keyboardType="numeric" />
+      {/* <TextInputBox placeholder="Amount" value={amount} onChangeText={setAmount} keyboardType="numeric" /> */}
+      <View style={{ marginBottom: 8 }}>
+  <TextInputBox
+    placeholder="Amount"
+    value={amount}
+    onChangeText={setAmount}
+    keyboardType="numeric"
+  />
+  <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>+18% GST</Text>
+</View>
+
       <View style={styles.row}>
         <View style={{ flex: 1, marginRight: 5 }}>
           <TextInputBox placeholder="Duration Days" value={hours} onChangeText={setHours} keyboardType="numeric" />

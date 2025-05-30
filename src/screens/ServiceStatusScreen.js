@@ -14,6 +14,7 @@ const ServiceStatusScreen = ({ navigation, route }) => {
     const [showModal, setShowModal] = useState(false);
     const [cashAmount, setCashAmount] = useState('');
     const [userdetails, setUserdetails] = useState('');
+    const [isChecked, setIsChecked] = useState(false);
     const timerRef = useRef(null);
     const additionalAmount = useSelector(state => state.auth.additionalAmount);
 
@@ -245,9 +246,23 @@ const ServiceStatusScreen = ({ navigation, route }) => {
 
             <Text style={styles.note}>⚠️ Customer needs to pay before service completion</Text>
             {/* <Text style={styles.note}> if offline paid</Text> */}
-            <TouchableOpacity onPress={() => setShowModal(true)} style={{ width: 90, height: 30, backgroundColor: 'blue', justifyContent: 'center', alignItems: 'center' }}>
+            {/* <TouchableOpacity onPress={() => setShowModal(true)} style={{ width: 90, height: 30, backgroundColor: 'blue', justifyContent: 'center', alignItems: 'center' }}>
                 <Text style={{ color: 'white' }}>Pay now</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
+
+            <TouchableOpacity
+                        style={styles.checkboxContainer}
+                        onPress={() => setIsChecked(!isChecked)}
+                    >
+                        <Image
+                            source={isChecked
+                                ? require('../assets/checkboxtick.png')
+                                : require('../assets/unchecked.png')
+                            }
+                            style={styles.checkboxIcon}
+                        />
+                        <Text style={styles.checkboxText}>Cash by hand recieved</Text>
+                    </TouchableOpacity>
             {/* 
             <GradientButton
     title="Pay Now"
@@ -263,12 +278,18 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                 title="Complete"
                 onPress={() => {
                     console.log(allPaid, 'here');
-                    if (allPaid) {
+                    if (allPaid || isChecked) {
                         dispatch(updateBookingstatus({ bookingId: bookingItem?.booking_id, booking_status: 13 }))
                             .unwrap()
                             .then(res => {
-                                Alert.alert('Bokking completed successfully!');
-                                navigation.navigate('Main')
+                                if(isChecked & allPaid ){
+                                   
+                                    Alert.alert('Bokking completed successfully!');
+                                    navigation.navigate('Main')
+                                }else{
+                                    setShowModal(true)
+                                }
+                              
 
                                 // navigation.goBack();
                             })
@@ -522,6 +543,20 @@ const styles = StyleSheet.create({
         color: 'black'
     },
     backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 15,
+    },
+    checkboxIcon: {
+        width: 24,
+        height: 24,
+        marginRight: 10,
+    },
+    checkboxText: {
+        fontSize: 14,
+        color: '#333',
+    },
 
 
 });

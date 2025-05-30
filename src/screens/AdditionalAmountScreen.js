@@ -6,15 +6,23 @@ import { createAdditionalAmount,updateAdditionalAmount } from '../redux/AuthSlic
 
 const AdditionalAmountScreen = ({navigation,route}) => {
   const { bookingItem ,additionalAmountResponse} = route.params;
-  const [amount, setAmount] = useState(additionalAmountResponse?.amount);
+  const [amount, setAmount] = useState('');
   const [additionalAmount, setAdditionalAmount] = useState(additionalAmountResponse.amount);
-  const [completionTime, setCompletionTime] = useState(additionalAmountResponse.amount);
-  const [works, setWorks] = useState(additionalAmountResponse.amount);
-  const [description, setDescription] = useState(additionalAmountResponse?.description);
+  const [completionTime, setCompletionTime] = useState('');
+  const [works, setWorks] = useState('');
+  const [description, setDescription] = useState('');
   const dispatch = useDispatch();
 
 useEffect(()=>{
 console.log(additionalAmountResponse,'heree resp')
+const originalAmount = parseFloat(additionalAmountResponse.amount); // e.g. 35.4
+const baseAmount = parseFloat((originalAmount / 1.18).toFixed(2));  // ≈ 30.0
+const gstAmount = parseFloat((originalAmount - baseAmount).toFixed(2)); // ≈ 5.4
+
+setAmount(baseAmount.toString())
+setCompletionTime(additionalAmountResponse?.number_of_hours_to_completed.toString())
+setWorks(additionalAmountResponse?.number_of_days_to_completed.toString())
+setDescription(additionalAmountResponse?.description)
 },[])
   // const handleUpdate = () => {
   //   // Handle form submission logic here
@@ -28,14 +36,17 @@ console.log(additionalAmountResponse,'heree resp')
   // };
 
   const handleUpdate = () => {
-    if (!amount || !additionalAmount || !completionTime || !works || !description) {
+    if (!amount  || !completionTime || !works || !description) {
       alert('Please fill in all fields.');
       return;
     }
   
+    const originalAmount = parseFloat(amount);
+const gstAmount = parseFloat((originalAmount * 0.18).toFixed(2));
+const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
     const payload = {
       // additional_amount_id: parseInt(additionalAmount),
-      amount: parseFloat(amount),
+      amount: parseFloat(totalAmountWithGst),
       booking_id: bookingItem?.booking_id,
       description: description,
       number_of_days_to_completed: works,
@@ -65,12 +76,21 @@ console.log(additionalAmountResponse,'heree resp')
         <Text style={styles.idValue}>#{bookingItem?.booking_id}</Text>
       </View>
 
-      <TextInputBox
+      {/* <TextInputBox
         placeholder="Amount"
         value={amount}
         onChangeText={setAmount}
         keyboardType="numeric"
-      />
+      /> */}
+           <View style={{ marginBottom: 8 }}>
+  <TextInputBox
+    placeholder="Amount"
+    value={amount}
+    onChangeText={setAmount}
+    keyboardType="numeric"
+  />
+  <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>+18% GST</Text>
+</View>
 
       {/* <TextInputBox
         placeholder="Additional Amount"
@@ -94,12 +114,12 @@ console.log(additionalAmountResponse,'heree resp')
         </View>
       </View>
 
-      <TextInputBox
+      {/* <TextInputBox
         placeholder="Works"
         value={works}
         onChangeText={setWorks}
         keyboardType="decimal-pad"
-      />
+      /> */}
 
       <TextInputBox
         placeholder="Description"
