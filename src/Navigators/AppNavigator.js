@@ -24,6 +24,8 @@ import EstimationScreen from '../screens/EstimationScreen';
 import ServiceStatusScreen from '../screens/ServiceStatusScreen';
 import AdditionalAmountScreen from '../screens/AdditionalAmountScreen';
 import MessageScreen from '../screens/MessageScreen';
+import TransactionHistoryScreen from '../screens/TransactionHistoryScreen';
+import PendingPaymentsScreen from '../screens/PendingPaymentsScreen';
 
 const Stack = createStackNavigator();
 
@@ -61,6 +63,8 @@ function AppStack() {
       <Stack.Screen name="ServiceStatusScreen" component={ServiceStatusScreen} />
       <Stack.Screen name="AdditionalAmountScreen" component={AdditionalAmountScreen} />
       <Stack.Screen name="MessageScreen" component={MessageScreen} />
+      <Stack.Screen name="TransactionHistory" component={TransactionHistoryScreen} />
+      <Stack.Screen name="PendingPayments" component={PendingPaymentsScreen} />
      
 
     </Stack.Navigator>

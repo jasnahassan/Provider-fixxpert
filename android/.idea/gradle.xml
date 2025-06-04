@@ -35,8 +35,11 @@
             <option value="$PROJECT_DIR$/../node_modules/react-native-gesture-handler/android" />
             <option value="$PROJECT_DIR$/../node_modules/react-native-image-picker/android" />
             <option value="$PROJECT_DIR$/../node_modules/react-native-linear-gradient/android" />
+            <option value="$PROJECT_DIR$/../node_modules/react-native-maps/android" />
+            <option value="$PROJECT_DIR$/../node_modules/react-native-razorpay/android" />
             <option value="$PROJECT_DIR$/../node_modules/react-native-safe-area-context/android" />
             <option value="$PROJECT_DIR$/../node_modules/react-native-screens/android" />
+            <option value="$PROJECT_DIR$/../node_modules/react-native-sound/android" />
             <option value="$PROJECT_DIR$/../node_modules/react-native-version-check/android" />
             <option value="$PROJECT_DIR$/../node_modules/react-native-video/android" />
           </set>

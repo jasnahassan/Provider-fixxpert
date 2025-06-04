@@ -68,7 +68,7 @@ const LoginScreen = ({ navigation }) => {
 
 useEffect(() => {
   GoogleSignin.configure({
-    webClientId: '466988466843-pq38idt9trhv1r2gp41nrvtl00o7o2hc.apps.googleusercontent.com', // Get this from Google Cloud Console
+    webClientId: '92131315671-dn6g78gki0t6d944330gmeltl5nn6ihv.apps.googleusercontent.com', // Get this from Google Cloud Console
     offlineAccess: true, // Enables refresh tokens
   });
 }, []);
@@ -87,7 +87,9 @@ const signInWithGoogle = async () => {
 
     const response = await dispatch(loginWithGoogle({
       token: idToken,
-      google_client_id: '466988466843-pq38idt9trhv1r2gp41nrvtl00o7o2hc.apps.googleusercontent.com'
+      // google_client_id: '466988466843-pq38idt9trhv1r2gp41nrvtl00o7o2hc.apps.googleusercontent.com'
+      // google_client_id: '92131315671-cga6nqmi6b5rhe56p2kpietls6mmbfkf.apps.googleusercontent.com'
+      google_client_id: '92131315671-dn6g78gki0t6d944330gmeltl5nn6ihv.apps.googleusercontent.com'
     })).unwrap();
 
     console.log('response12353', response);

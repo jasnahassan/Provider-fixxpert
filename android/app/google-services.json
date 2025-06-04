@@ -1,49 +1,78 @@
 {
   "project_info": {
-    "project_number": "466988466843",
-    "project_id": "fixxpert-provider",
-    "storage_bucket": "fixxpert-provider.firebasestorage.app"
+    "project_number": "92131315671",
+    "project_id": "fix-xpert-82327",
+    "storage_bucket": "fix-xpert-82327.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:466988466843:android:062622b8e48890e7723c3e",
+        "mobilesdk_app_id": "1:92131315671:android:34107df18cbf9b54410592",
         "android_client_info": {
-          "package_name": "com.optima.technician"
+          "package_name": "com.optima.fixxpert"
         }
       },
       "oauth_client": [
         {
-          "client_id": "466988466843-1siovhb5iqrcgiu16sj2rd3l32l0t6d6.apps.googleusercontent.com",
+          "client_id": "92131315671-au4aqlcruin62t0tgbq3b1des3pfkhmp.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.optima.technician",
-            "certificate_hash": "67f0586e00f584c982cb27030a66c2cb8938e703"
+            "package_name": "com.optima.fixxpert",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
           }
         },
         {
-          "client_id": "466988466843-35sik5p5vtr26g7hfnins6ppdgile680.apps.googleusercontent.com",
+          "client_id": "92131315671-o2t1a82apf42tld1g9r21u1c0pupul7b.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.optima.technician",
-            "certificate_hash": "fa804dcdc339f68893d02b04a187ee7fa179e918"
+            "package_name": "com.optima.fixxpert",
+            "certificate_hash": "ea3c28482eccfd00361a550da7eba7f868e8429e"
           }
         },
         {
-          "client_id": "466988466843-pq38idt9trhv1r2gp41nrvtl00o7o2hc.apps.googleusercontent.com",
+          "client_id": "92131315671-dn6g78gki0t6d944330gmeltl5nn6ihv.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyB3PUAF18LDZUUjZCGxZHGffQnXOwhwnOU"
+          "current_key": "AIzaSyBuXFoe4hljALW-ki2x3OYcxugEt4APs80"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "466988466843-pq38idt9trhv1r2gp41nrvtl00o7o2hc.apps.googleusercontent.com",
+              "client_id": "92131315671-dn6g78gki0t6d944330gmeltl5nn6ihv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:92131315671:android:b1c784023622c075410592",
+        "android_client_info": {
+          "package_name": "com.optima.technician"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "92131315671-dn6g78gki0t6d944330gmeltl5nn6ihv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBuXFoe4hljALW-ki2x3OYcxugEt4APs80"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "92131315671-dn6g78gki0t6d944330gmeltl5nn6ihv.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

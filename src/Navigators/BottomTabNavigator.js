@@ -7,6 +7,7 @@ import NotificationScreen from '../screens/NotificationScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import Chat from '../screens/Chat';
 import MyBookings from '../screens/MyBookings';
+import MyPaymentsScreen from '../screens/MyPaymentsScreen';
 
 
 const Tab = createBottomTabNavigator();
@@ -37,6 +38,11 @@ const getTabBarIcon = (route, focused) => {
       ? require('../assets/chatactive.png')
       : require('../assets/Chat.png');
   }
+  else if (route.name === 'MyPayments') {
+    icon = focused
+      ? require('../assets/CreditcartActive.png')
+      : require('../assets/Creditcard.png');
+  }
 
   return <Image source={icon} style={styles.icon} />;
 };
@@ -54,7 +60,9 @@ export default function BottomTabNavigator() {
       <Tab.Screen name="MyBookings" component={MyBookings} options={{ headerShown: false }} />
       <Tab.Screen name="Notification" component={NotificationScreen} options={{ headerShown: false }} />
      
-      <Tab.Screen name="Chat" component={Chat} options={{ headerShown: false }} />
+      {/* <Tab.Screen name="Chat" component={Chat} options={{ headerShown: false }} /> */}
+      <Tab.Screen name="MyPayments" component={MyPaymentsScreen} options={{ headerShown: false }} />
+
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
 
     </Tab.Navigator>

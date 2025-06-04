@@ -1092,7 +1092,6 @@ export const fetchProviderDashboard = createAsyncThunk(
     }
   }
 );
-
 export const fetchUnassignedBookings = createAsyncThunk(
   'booking/fetchUnassignedBookings',
   async (providerId, { rejectWithValue }) => {
@@ -1110,16 +1109,49 @@ export const fetchUnassignedBookings = createAsyncThunk(
       const data = await response.json();
       console.log(data, 'Unassigned Bookings Response');
 
+      // 🛑 Check if it's an "error" response (even if response.ok)
+      if (data.error) {
+        return []; // Return empty array if no bookings
+      }
+
       if (!response.ok) {
         throw new Error(data.message || 'Failed to fetch unassigned bookings');
       }
 
-      return data;
+      return data; // Assuming it's an array of bookings
     } catch (error) {
       return rejectWithValue(error.message || 'Something went wrong!');
     }
   }
 );
+
+// export const fetchUnassignedBookings = createAsyncThunk(
+//   'booking/fetchUnassignedBookings',
+//   async (providerId, { rejectWithValue }) => {
+//     try {
+//       const token = await AsyncStorage.getItem('authToken');
+//       const response = await fetch(`${BASE_URL}booking/unassigned_bookings/${providerId}`, {
+//         method: 'GET',
+//         headers: {
+//           'Accept': 'application/json',
+//           'Content-Type': 'application/json',
+//           'Authorization': token ? `Bearer ${token}` : '',
+//         },
+//       });
+
+//       const data = await response.json();
+//       console.log(data, 'Unassigned Bookings Response');
+
+//       if (!response.ok) {
+//         throw new Error(data.message || 'Failed to fetch unassigned bookings');
+//       }
+
+//       return data;
+//     } catch (error) {
+//       return rejectWithValue(error.message || 'Something went wrong!');
+//     }
+//   }
+// );
 export const acceptBooking = createAsyncThunk(
   'booking/acceptBooking',
   async (bookingId, { rejectWithValue }) => {
@@ -1435,7 +1467,7 @@ const authSlice = createSlice({
     error: null,
     serviceDetails: null,
     dashboardDetails: null,
-    unassignedBookings:null,
+    unassignedBookings:[],
     bookings: [],
     messages: [],
     additionalAmount: [],
@@ -1634,7 +1666,7 @@ const authSlice = createSlice({
       })
       .addCase(fetchUnassignedBookings.fulfilled, (state, action) => {
         state.loading = false;
-        state.unassignedBookings = action.payload; // assuming you name the state key like this
+        state.unassignedBookings = action.payload || []; // Ensure empty array is stored
       })
       .addCase(fetchUnassignedBookings.rejected, (state, action) => {
         state.loading = false;
@@ -1658,7 +1690,7 @@ const authSlice = createSlice({
       })
       .addCase(fetchBookingByFilter.fulfilled, (state, action) => {
         state.loading = false;
-        state.bookings = action.payload;
+        state.bookings = action.payload || [];
       })
       .addCase(fetchBookingByFilter.rejected, (state, action) => {
         state.loading = false;

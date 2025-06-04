@@ -70,7 +70,32 @@ const HomeScreen = ({ navigation }) => {
     { title: "Plumbing", location: "123 Street", time: "04:00 PM" },
     // { title: "Cleaning", location: "456 Avenue", time: "06:00 PM" },
   ];
-
+  useEffect(() => {
+    const fetchBookingsInterval = setInterval(async () => {
+      const user = await getUserData();
+      console.log(user?.service_provider_id, 'fetch bookings interval');
+      dispatch(fetchUnassignedBookings(user?.service_provider_id));
+    }, 10000); // every 10 seconds
+  
+    const locationInterval = setInterval(() => {
+      getCurrentLocation();
+    }, 10000); // fetch location every 10 seconds
+  
+    return () => {
+      clearInterval(fetchBookingsInterval);
+      clearInterval(locationInterval); // clear intervals on unmount
+    };
+  }, []);
+  
+  // useEffect(() => {
+  //   const interval = setInterval(async () => {
+  //     const user = await getUserData();
+  //     console.log(user?.service_provider_id,'here time call' )
+  //     dispatch(fetchUnassignedBookings(user?.service_provider_id));
+  //   }, 10000); // 10 seconds
+  
+  //   return () => clearInterval(interval); // Cleanup on unmount
+  // }, []);
   const getUserData = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem('userData');
@@ -351,9 +376,9 @@ const HomeScreen = ({ navigation }) => {
                   } style={styles.acceptBtn}>
                   <Text style={styles.btnText}>Accept</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.declineBtn}>
+                {/* <TouchableOpacity style={styles.declineBtn}>
                   <Text style={styles.btnText2}>Decline</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </View>
           )}
@@ -385,6 +410,7 @@ const HomeScreen = ({ navigation }) => {
                 <Text style={styles.serviceTitle}>{item?.service_name}</Text>
                 <Text style={styles.serviceMeta}>{item?.address_details?.address_line1},{item?.address_details?.address_line2}</Text>
                 <Text style={styles.serviceMeta}>{item?.booked_date_time}</Text>
+                <Text style={styles.serviceMeta}>{item?.booking_status}</Text>
               </View>
             </TouchableOpacity>
           )}

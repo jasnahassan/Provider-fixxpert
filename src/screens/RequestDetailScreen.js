@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useRef, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -39,6 +38,10 @@ const RequestDetailScreen = ({ navigation,route }) => {
     });
   };
 
+  useEffect(()=>{
+console.log(serviceItem,'hhh')
+
+  },[])
   const handleStartPress = () => {
     // if (!selectedReason && !customReason.trim()) {
     //     alert('Please select or enter a reason');
@@ -125,16 +128,19 @@ const RequestDetailScreen = ({ navigation,route }) => {
           title="Customer Location"
         />
       </MapView>
+{serviceItem.booking_status == 'ACCEPTED' && (
+    <View style={styles.buttonRow}>
+    <TouchableOpacity onPress={()=> handleStartPress()}  style={styles.startBtn}>
+      <Text style={styles.btnTextWhite}>Start</Text>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={()=>navigation.navigate('CancelBooking', { selectedBooking:serviceItem})} style={styles.cancelBtn}>
+      <Text style={styles.btnTextPrimary}>Cancel</Text>
+    </TouchableOpacity>
+  </View>
 
+)}
       {/* Start / Cancel Buttons */}
-      <View style={styles.buttonRow}>
-        <TouchableOpacity onPress={()=> handleStartPress()}  style={styles.startBtn}>
-          <Text style={styles.btnTextWhite}>Start</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={()=>navigation.navigate('CancelBooking', { selectedBooking:serviceItem})} style={styles.cancelBtn}>
-          <Text style={styles.btnTextPrimary}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
+    
     </ScrollView>
   );
 };
