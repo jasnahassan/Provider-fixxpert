@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, Alert,TouchableWithout
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import TextInputBox from '../components/TextInputBox';
 import GradientButton from '../components/GradientButton';
-import { createAdditionalAmount ,uploadProviderDocuments} from '../redux/AuthSlice';
+import { createAdditionalAmount ,uploadProviderDocuments,updateBookingstatus} from '../redux/AuthSlice';
 import { useDispatch } from 'react-redux';
 
 const EstimationScreen = ({ navigation,route }) => {
@@ -64,17 +64,27 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
     };
   
     dispatch(createAdditionalAmount(payload))
-      .unwrap()
-      .then(res => {
-        Alert.alert('Success', 'Additional amount submitted!');
-        navigation.navigate('ServiceStatusScreen', {
-          bookingItem,
-          additionalAmountResponse: res, // Pass response
+    .unwrap()
+    .then(res => {
+      // First update booking status
+      dispatch(updateBookingstatus({ bookingId: bookingItem?.booking_id, booking_status: 10 }))
+        .unwrap()
+        .then(() => {
+          // After status update, show alert and navigate
+          Alert.alert('Success', 'Additional amount submitted!');
+          navigation.navigate('ServiceStatusScreen', {
+            bookingItem,
+            additionalAmountResponse: res,
+          });
+        })
+        .catch(statusErr => {
+          Alert.alert('Error', `Booking status update failed: ${statusErr}`);
         });
-      })
-      .catch(err => {
-        Alert.alert('Error', err);
-      });
+    })
+    .catch(err => {
+      Alert.alert('Error', `Additional amount submission failed: ${err}`);
+    });
+  
   };
 
   const handleImagePick = () => {

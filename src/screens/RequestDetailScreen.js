@@ -138,7 +138,7 @@ console.log(serviceItem,'hhh')
     </TouchableOpacity>
   </View>
 
-)}
+ )} 
       {/* Start / Cancel Buttons */}
     
     </ScrollView>

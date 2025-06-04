@@ -79,8 +79,8 @@
                                             <option name="values">
                                               <map>
                                                 <entry key="color" value="000000" />
-                                                <entry key="imagePath" value="$PROJECT_DIR$/../../Provider_FixXpert/src/assets/logo.png" />
-                                                <entry key="scalingPercent" value="36" />
+                                                <entry key="imagePath" value="$PROJECT_DIR$/../src/assets/ff.png" />
+                                                <entry key="scalingPercent" value="71" />
                                               </map>
                                             </option>
                                           </PersistentState>

@@ -75,6 +75,7 @@ const HomeScreen = ({ navigation }) => {
       const user = await getUserData();
       console.log(user?.service_provider_id, 'fetch bookings interval');
       dispatch(fetchUnassignedBookings(user?.service_provider_id));
+      dispatch(fetchBookingByFilter({ providerId: user?.service_provider_id, filterType: 'Latest', searchQuery: '' }));
     }, 10000); // every 10 seconds
   
     const locationInterval = setInterval(() => {

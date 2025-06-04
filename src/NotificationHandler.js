@@ -117,7 +117,7 @@ const NotificationHandler = () => {
         };
 
         const playNotificationSound = () => {
-            const sound = new Sound('notificationsound.wav', Sound.MAIN_BUNDLE, (error) => {
+            const sound = new Sound('notificationsound.mp3', Sound.MAIN_BUNDLE, (error) => {
                 if (error) {
                     console.log('🔇 Sound load error:', error);
                     return;

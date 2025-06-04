@@ -1445,7 +1445,7 @@ export const fetchAdditionalAmount = createAsyncThunk(
       });
 
       const data = await response.json();
-      console.log('Fetched Additional Amount:', data);
+      console.log('Fetched Additional Amount: api', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Failed to fetch additional amount');

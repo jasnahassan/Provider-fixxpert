@@ -5,6 +5,8 @@ import RazorpayCheckout from 'react-native-razorpay';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createPaymentHistory, updateBookingstatus, fetchAdditionalAmount, updateAdditionalAmount } from '../redux/AuthSlice';
 import { useDispatch, useSelector } from "react-redux";
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const ServiceStatusScreen = ({ navigation, route }) => {
     const dispatch = useDispatch();
@@ -39,6 +41,27 @@ const ServiceStatusScreen = ({ navigation, route }) => {
         return { hrs, mins, secs };
     };
 
+    useFocusEffect(
+        React.useCallback(() => {
+          if (!bookingItem?.booking_id) return;
+      
+          console.log('⏱ Fetching additional amount...');
+      
+          dispatch(fetchAdditionalAmount(bookingItem.booking_id));
+      
+          const intervalId = setInterval(() => {
+            console.log('🔁 Polling additional amount...');
+            dispatch(fetchAdditionalAmount(bookingItem.booking_id));
+          }, 10000);
+      
+          return () => {
+            console.log('🛑 Clearing interval');
+            clearInterval(intervalId);
+          };
+        }, [bookingItem?.booking_id])
+      );
+      
+    
     useEffect(() => {
         if (bookingItem?.booking_id) {
             dispatch(fetchAdditionalAmount(bookingItem?.booking_id));
@@ -142,7 +165,7 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                     dispatch(updateAdditionalAmount({ payload, additional_amount_id: additionalAmountResponse?.additional_amount_id }))
                         .unwrap()
                         .then(res => {
-                            Alert.alert('Additional amount created successfully!');
+                            Alert.alert('Additional amount Payed successfully!');
                             console.log(res)
                             dispatch(fetchAdditionalAmount(bookingItem?.booking_id));
 
@@ -299,7 +322,7 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                             });
 
                     } else {
-                        Alert.alert('Please do pending payments to complete');
+                        Alert.alert('Please do pending payments to complete the service');
                     }
                 }}
             />
@@ -309,7 +332,7 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Payment verification</Text>
                         <Text style={styles.modalSubText}>
-                            ⚠️ Online payment is not detected{'\n'}If customer paid in cash, please enter the amount below
+                            ⚠️ Online payment is not detected{'\n'}If customer paid in cash, please pay the amount below
                         </Text>
 
                         {/* <Text style={styles.customerName}>Customer: {bookingItem?.user_name || 'N/A'}</Text> */}
@@ -332,9 +355,10 @@ const ServiceStatusScreen = ({ navigation, route }) => {
 
 
                                 setShowModal(false)
+                                navigation.navigate('MyPayments')
                             }
                             } style={styles.cancelButton}>
-                                <Text style={styles.cancelText}>Cancel</Text>
+                                <Text style={styles.cancelText}>Pay later</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => {
                                 ConfirmBookingPayment()
