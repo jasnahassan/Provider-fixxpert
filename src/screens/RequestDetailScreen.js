@@ -72,8 +72,8 @@ console.log(serviceItem,'hhh')
         <View style={{ flex: 1 }}>
           <Text style={styles.serviceTitle}>{serviceItem?.service_name}</Text>
           <Text style={styles.bookingId}>Booking ID : #{serviceItem?.booking_id}</Text>
-          <Text style={styles.date}>Date : {serviceItem?.booked_date_time}</Text>
-          <Text style={styles.time}>Scheduled Time : {serviceItem?.booked_date_time}</Text>
+          <Text style={styles.date}>Date : {moment.utc(serviceItem?.booked_date_time).local().format("YYYY-MM-DD")}</Text>
+          <Text style={styles.time}>Scheduled Time :  {moment.utc(serviceItem?.booked_date_time).local().format("hh:mm A")}</Text>
         </View>
         <Image
           source={{uri:serviceItem?.service_icon}} // Replace with your image

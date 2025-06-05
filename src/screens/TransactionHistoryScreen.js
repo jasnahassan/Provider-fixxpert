@@ -1,16 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet ,Image} from 'react-native';
 
 const transactions = [
   { id: '1', service: 'Home Service Call', date: '25 May 2024', amount: '₹11,44', status: 'Completed' },
   { id: '2', service: 'Home Service Call', date: '24 May 2024', amount: '₹11,44', status: 'Completed' },
 ];
 
-const TransactionHistoryScreen = () => {
+const TransactionHistoryScreen = ({navigation}) => {
   const [activeTab, setActiveTab] = useState('Online');
 
   return (
     <View style={styles.container}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={require('../assets/back-arrow.png')} style={styles.backIcon} />
+          <Text style={styles.title}>Transaction history</Text>
+        </TouchableOpacity>
       {/* Tab Switch */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
@@ -92,4 +96,16 @@ const styles = StyleSheet.create({
   date: { fontSize: 13, color: '#777' },
   amount: { fontSize: 16, fontWeight: '600', color: '#111' },
   status: { fontSize: 13, color: '#1aa260', fontWeight: '500' },
+  backIcon: {
+    height: 20,
+    width: 20,
+    marginTop: 5,
+    marginRight: 15,
+    resizeMode: 'contain'
+  },
+  title: {
+    fontSize: 20,
+    color: 'black'
+  },
+  backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
 });

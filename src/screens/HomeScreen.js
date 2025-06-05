@@ -372,9 +372,12 @@ useEffect(() => {
 
                 setIsActive(value);
                 if (value) {
-                  dispatch(Activateprovider(providerid));         // Call activate API
+                  requestLocationPermission()
+                  // requestNotificationPermission();
+                  
+                  // dispatch(Activateprovider(providerid));         // Call activate API
                 } else {
-                  dispatch(deActivateprovider(providerid)); // Call deactivate API
+                  // dispatch(deActivateprovider(providerid)); // Call deactivate API
                 }
               }}
               thumbColor={isActive ? "#fff" : "#ccc"}
@@ -491,7 +494,10 @@ useEffect(() => {
               }}>
                 <Text style={styles.serviceTitle}>{item?.service_name}</Text>
                 <Text style={styles.serviceMeta}>{item?.address_details?.address_line1},{item?.address_details?.address_line2}</Text>
-                <Text style={styles.serviceMeta}>{item?.booked_date_time}</Text>
+                <Text style={styles.serviceMeta}> Date: {moment.utc(item?.booked_date_time).local().format("YYYY-MM-DD")}</Text>
+                <Text style={styles.serviceMeta}>
+    Time: {moment.utc(item?.booked_date_time).local().format("hh:mm A")}
+  </Text>
                 <Text style={styles.serviceMeta}>{item?.booking_status}</Text>
               </View>
             </TouchableOpacity>

@@ -28,7 +28,10 @@ const [isHandoverModalVisible, setHandoverModalVisible] = useState(false);
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>My Payments</Text>
+       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={require('../assets/back-arrow.png')} style={styles.backIcon} />
+          <Text style={styles.title}>My Payments</Text>
+        </TouchableOpacity>
 
       {/* Earnings and Remittance */}
       <View style={styles.earningsContainer}>
@@ -435,6 +438,18 @@ const styles = StyleSheet.create({
     color:'black',
     fontSize: 17,
     fontWeight: '600',
-  }
+  },
+  backIcon: {
+    height: 20,
+    width: 20,
+    marginTop: 5,
+    marginRight: 15,
+    resizeMode: 'contain'
+  },
+  title: {
+    fontSize: 20,
+    color: 'black'
+  },
+  backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
   
 });
