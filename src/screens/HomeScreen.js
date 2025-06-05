@@ -14,7 +14,8 @@ import {
   PermissionsAndroid,
   Switch, 
   ImageBackground,
-  Platform
+  Platform,
+  AppState
 } from "react-native";
 import Carousel from "react-native-snap-carousel";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,6 +24,9 @@ import { updateFcmToken, fetchAllServiceTypes, fetchBanners ,sendServiceProvider
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { startBackgroundJob, stopBackgroundJob } from '../utils/backgroundLocationService';
+import ReminderModal from "../components/ReminderModal";
+import moment from 'moment'; 
 
 
 import Geolocation from 'react-native-geolocation-service';
@@ -49,6 +53,7 @@ const emergencyServices = [
   { id: 3, name: "Electrical" },
   { id: 4, name: "Locksmith" },
 ];
+let remindersShown = {};
 
 const HomeScreen = ({ navigation }) => {
   const carouselRef = useRef(null);
@@ -57,6 +62,9 @@ const HomeScreen = ({ navigation }) => {
   const { banners, loading, error ,dashboardDetails,unassignedBookings,acceptedBooking,bookings} = useSelector((state) => state.auth);
   const [isActive, setIsActive] = useState(true);
   const [providerid, setproviderid] = useState('');
+  const [reminderVisible, setReminderVisible] = useState(false);
+const [hoursLeft, setHoursLeft] = useState(null);
+const [jobType, setJobType] = useState('');
   
 
   const stats = [
@@ -70,6 +78,80 @@ const HomeScreen = ({ navigation }) => {
     { title: "Plumbing", location: "123 Street", time: "04:00 PM" },
     // { title: "Cleaning", location: "456 Avenue", time: "06:00 PM" },
   ];
+  const showReminderModal = (hours, type) => {
+    setHoursLeft(hours);
+    setJobType(type);
+    setReminderVisible(true);
+  };
+
+  useEffect(() => {
+    if (bookings?.length) {
+      checkJobReminders(bookings, showReminderModal);
+    }
+  }, [bookings]);
+
+  // useEffect(() => {
+  //   startBackgroundJob();
+  
+  //   return () => {
+  //     stopBackgroundJob(); // Optional cleanup
+  //   };
+  // }, []);
+
+  const checkJobReminders = (bookings, showReminderModal) => {
+    const now = moment();
+  
+    bookings.forEach((booking) => {
+      const bookedTimeUTC = booking.booked_date_time;
+      if (!bookedTimeUTC) return;
+  
+      const jobTimeLocal = moment.utc(bookedTimeUTC).local(); // Convert UTC to local
+      const isToday = jobTimeLocal.isSame(now, 'day');
+      if (!isToday) return;
+  
+      const diffInMinutes = jobTimeLocal.diff(now, 'minutes');
+      const serviceName = booking.service_name;
+      const bookingId = booking.id || booking.booked_date_time; // Unique job ID
+  
+      if (diffInMinutes <= 240 && diffInMinutes > 180 && !remindersShown[`${bookingId}-4h`]) {
+        remindersShown[`${bookingId}-4h`] = true;
+        showReminderModal(4, serviceName);
+      } else if (diffInMinutes <= 120 && diffInMinutes > 60 && !remindersShown[`${bookingId}-2h`]) {
+        remindersShown[`${bookingId}-2h`] = true;
+        showReminderModal(2, serviceName);
+      } else if (diffInMinutes <= 60 && diffInMinutes > 0 && !remindersShown[`${bookingId}-1h`]) {
+        remindersShown[`${bookingId}-1h`] = true;
+        showReminderModal(1, serviceName);
+      }
+    });
+  };
+
+useEffect(() => {
+  const appStateListener = AppState.addEventListener('change', (nextAppState) => {
+    if (nextAppState === 'active') {
+      // Request permissions here
+      console.log("📍 Requesting location permission...");
+      requestLocationPermission();
+    }
+  });
+
+  return () => {
+    appStateListener.remove();
+  };
+}, []);
+  // useEffect(() => {
+  //   console.log("📍 Requesting location permission...");
+  //   requestLocationPermission(); // This is correct
+  // }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log("🔄 HomeScreen focused — request location permission again");
+      requestLocationPermission();
+    }, [])
+  );
+
+
   useEffect(() => {
     const fetchBookingsInterval = setInterval(async () => {
       const user = await getUserData();
@@ -116,16 +198,14 @@ const HomeScreen = ({ navigation }) => {
       BackHandler.addEventListener('hardwareBackPress', onBackPress);
   
       // Fetch location permission and current location when screen is focused
-      requestLocationPermission();
+      // requestLocationPermission();
   
       return () => {
         BackHandler.removeEventListener('hardwareBackPress', onBackPress);
       };
     }, [])
   );
-  useEffect(()=>{
-    requestLocationPermission();
-  },[])
+ 
   
   // useFocusEffect(
   //   useCallback(() => {
@@ -211,7 +291,7 @@ const HomeScreen = ({ navigation }) => {
         dispatch(fetchUnassignedBookings(user?.service_provider_id));
         dispatch(fetchBookingByFilter({ providerId: user?.service_provider_id, filterType: 'Latest', searchQuery: '' }));
 
-        requestLocationPermission(); 
+      
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
@@ -225,6 +305,7 @@ const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     // const backAction = () => true;
     // const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+
 
     const requestNotificationPermission = async () => {
       if (Platform.OS === 'android' && Platform.Version >= 33) {
@@ -249,9 +330,9 @@ const HomeScreen = ({ navigation }) => {
         console.error("Error fetching FCM token:", error);
       }
     };
-
+    requestLocationPermission();
     requestNotificationPermission();
-   requestLocationPermission();
+   
     getFcmToken();
     dispatch(fetchBanners())
     dispatch(fetchAllServiceTypes());
@@ -388,7 +469,7 @@ const HomeScreen = ({ navigation }) => {
 
         
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Services Reques</Text>
+          <Text style={styles.sectionTitle}>Services Request</Text>
           <TouchableOpacity onPress={() => navigation.navigate("ViewAllServices", { title: "All Services" })}>
             <Text style={styles.viewAll}>›</Text>
           </TouchableOpacity>
@@ -416,6 +497,12 @@ const HomeScreen = ({ navigation }) => {
             </TouchableOpacity>
           )}
         />
+        <ReminderModal
+  visible={reminderVisible}
+  onClose={() => setReminderVisible(false)}
+  hoursLeft={hoursLeft}
+  jobType={jobType}
+/>
       </ScrollView>
     </SafeAreaView>
   );
