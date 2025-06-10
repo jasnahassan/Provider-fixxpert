@@ -349,7 +349,7 @@ useEffect(() => {
   const renderService = ({ item }) => (
     <TouchableOpacity onPress={() => navigation.navigate('ServiceDetail', { serviceId: item?.service_type_id })} style={styles.card}>
       <View style={styles.cardContent}>
-        <Image source={{ uri: item.icon }} style={styles.serviceIcon} />
+        <Image source={{ uri: item.icon }} resizeMode='contain' style={styles.serviceIcon} />
         <Text style={styles.serviceText}>{item.service_type_name}</Text>
       </View>
     </TouchableOpacity>
@@ -398,8 +398,12 @@ useEffect(() => {
             >
               <View style={styles.innerContent}>
                 {/* <Image source={item.image} style={styles.statIcon} /> */}
-                <Image source={item.image} style={{ width: 50, height: 50, alignSelf: 'flex-end', marginTop: 7 }} />
+                <View style={{flexDirection:'row',justifyContent:"space-between"}}>
                 <Text style={styles.statNumber}>{item.count}</Text>
+                <Image source={item.image} style={{ width: 40, height: 40, alignSelf: 'flex-end', marginBottom: 20 }} />
+               
+                </View>
+                
                 <Text style={styles.statLabel}>{item.label}</Text>
               </View>
 
@@ -473,7 +477,7 @@ useEffect(() => {
         
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Services Request</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("ViewAllServices", { title: "All Services" })}>
+          <TouchableOpacity style={{width:70,justifyContent:"space-between",alignItems:'flex-end'}} onPress={() => navigation.navigate("ViewAllServices", { title: "All Services" })}>
             <Text style={styles.viewAll}>›</Text>
           </TouchableOpacity>
         </View>
@@ -488,16 +492,14 @@ useEffect(() => {
               </View>
               <View style={{
                 flex: 1,             // Takes up remaining space
-                // backgroundColor: "red",
+                backgroundColor: "#F6F7F9",
                 padding: 10,         // Only this box gets padding
                 justifyContent: "center"
               }}>
                 <Text style={styles.serviceTitle}>{item?.service_name}</Text>
                 <Text style={styles.serviceMeta}>{item?.address_details?.address_line1},{item?.address_details?.address_line2}</Text>
-                <Text style={styles.serviceMeta}> Date: {moment.utc(item?.booked_date_time).local().format("YYYY-MM-DD")}</Text>
-                <Text style={styles.serviceMeta}>
-    Time: {moment.utc(item?.booked_date_time).local().format("hh:mm A")}
-  </Text>
+                <Text style={styles.serviceMeta}>Date & Time: {moment.utc(item?.booked_date_time).local().format("YYYY-MM-DD")}, {moment.utc(item?.booked_date_time).local().format("hh:mm A")}</Text>
+          
                 <Text style={styles.serviceMeta}>{item?.booking_status}</Text>
               </View>
             </TouchableOpacity>
@@ -524,7 +526,7 @@ const styles = StyleSheet.create({
   banner: { width: "100%", height: 150, borderRadius: 10, marginBottom: 25 },
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
   sectionTitle: { fontSize: 18, fontWeight: "bold", color: 'black' },
-  viewAll: { fontSize: 22, color: "blue" },
+  viewAll: { fontSize: 36, color: "#224566" ,fontWeight:'bold',},
   card: {
     flex: 1,
     margin: 8,
@@ -564,7 +566,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
-    backgroundColor: 'lightgray',
+    backgroundColor: '#F6F7F9',
     padding: 15,
     margintop: 20
   },
@@ -623,7 +625,9 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "white",
+    color: "black",
+    marginLeft:15
+    // marginBottom:20
   },
 
   statLabel: {
@@ -648,8 +652,8 @@ const styles = StyleSheet.create({
   },
 
   grayBox: {
-    width: 80,
-    backgroundColor: "gray",
+    width: 100,
+    backgroundColor: "#C4C4C4",
     justifyContent:'center',
     alignItems:'center'
   },

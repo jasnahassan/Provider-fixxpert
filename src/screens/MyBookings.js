@@ -113,6 +113,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBookingByFilter } from '../redux/AuthSlice'; // Adjust path if needed
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import moment from "moment";
 
 const MyBookings = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -152,6 +153,10 @@ const MyBookings = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={require('../assets/back-arrow.png')} style={styles.backIcon} />
+          <Text style={styles.title}> Services </Text>
+        </TouchableOpacity>
       <Picker
         selectedValue={selectedStatus}
         onValueChange={(itemValue) => setSelectedStatus(itemValue)}
@@ -187,7 +192,7 @@ const MyBookings = ({ navigation }) => {
 
             <View style={styles.row}>
               <Image source={require('../assets/Calendar.png')} style={styles.serviceImage2} />
-              <Text style={styles.rowText}>{item?.booked_date_time}</Text>
+              <Text style={styles.rowText}>{moment.utc(item?.booked_date_time).local().format("YYYY-MM-DD")} , {moment.utc(item?.booked_date_time).local().format("hh:mm A")}</Text>
             </View>
 
             <View style={styles.row}>
@@ -245,8 +250,8 @@ const styles = StyleSheet.create({
     alignSelf:'center'
   },
   serviceImage2: {
-    width: 30,
-    height: 30,
+    width: 20,
+    height: 20,
     resizeMode: 'contain',
     marginBottom: 8,
     alignSelf:'center'
@@ -280,4 +285,16 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'blue',
   },
+  backIcon: {
+    height: 20,
+    width: 20,
+    marginTop: 5,
+    marginRight: 15,
+    resizeMode: 'contain'
+  },
+  title: {
+    fontSize: 20,
+    color: 'black'
+  },
+  backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
 });

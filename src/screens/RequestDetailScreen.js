@@ -12,6 +12,7 @@ import {
 import MapView, { Marker } from 'react-native-maps';
 import { updateBookingstatus } from '../redux/AuthSlice';
 import { useDispatch, useSelector } from "react-redux";
+import moment from "moment";
 
 const { width } = Dimensions.get('window');
 
@@ -89,14 +90,33 @@ console.log(serviceItem,'hhh')
             
           </View>
           {/* <Image
-            // source={require('../assets/Chat.png')}
+            source={{uri:serviceItem?.user.service_provider_profile_image_file_id}}
             style={styles.avatar}
           /> */}
           <View style={styles.info}>
-            <Text style={styles.name}>{serviceItem?.user?.name}</Text>
-            <Text style={styles.contact}>{serviceItem?.user?.mobile}</Text>
-            <Text style={styles.contact}>{serviceItem?.user?.email}</Text>
-            <Text style={styles.contact}>{serviceItem?.address_details?.address_line1},{serviceItem?.address_details?.address_line2}</Text>
+          <View style={styles.cardRow}>
+          {/* <Image source={require('../assets/Profilered.png')} style={styles.icon} /> */}
+          <Text style={styles.name}>{serviceItem?.user?.name}</Text>
+        </View>
+       
+
+        <View style={styles.cardRow}>
+          <Image resizeMode="contain" source={require('../assets/Callingred.png')} style={styles.icon} />
+          
+          <Text style={styles.contact}>{serviceItem?.user?.mobile}</Text>
+           
+        </View>
+        <View style={styles.cardRow}>
+          <Image resizeMode="contain" source={require('../assets/Emailred.png')} style={styles.icon} />
+          
+          <Text style={styles.contact}> {serviceItem?.user?.email}</Text>
+           
+        </View>
+        <View style={styles.cardRow}>
+          <Image source={require('../assets/Locationred.png')} style={styles.icon} />
+          <Text style={styles.contact}> {serviceItem?.address_details?.address_line1},{serviceItem?.address_details?.address_line2}</Text>
+          </View>    
+           
           </View>
         </View>
         <View style={styles.buttonRow}>
@@ -138,7 +158,7 @@ console.log(serviceItem,'hhh')
     </TouchableOpacity>
   </View>
 
- )} 
+  )}  
       {/* Start / Cancel Buttons */}
     
     </ScrollView>
@@ -292,6 +312,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
     width: width - 32,
+  },
+  cardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 2,
+  },
+  cardText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: 'black'
+  },
+  icon: {
+    width: 16,
+    height: 16,
   },
 });
 

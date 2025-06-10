@@ -71,13 +71,27 @@ const ServiceStatusScreen = ({ navigation, route }) => {
     const handleTimerToggle = () => {
         if (isRunning) {
             clearInterval(timerRef.current);
+            dispatch(updateBookingstatus({ bookingId: bookingItem?.booking_id, booking_status: 15 }));
         } else {
             timerRef.current = setInterval(() => {
                 setSeconds((prev) => prev + 1);
             }, 1000);
+            dispatch(updateBookingstatus({ bookingId: bookingItem?.booking_id, booking_status: 14 }));
         }
         setIsRunning(!isRunning);
     };
+    
+
+    // const handleTimerToggle = () => {
+    //     if (isRunning) {
+    //         clearInterval(timerRef.current);
+    //     } else {
+    //         timerRef.current = setInterval(() => {
+    //             setSeconds((prev) => prev + 1);
+    //         }, 1000);
+    //     }
+    //     setIsRunning(!isRunning);
+    // };
 
     const { hrs, mins, secs } = formatTime(seconds);
 
@@ -226,6 +240,8 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                     onPress={handleTimerToggle}
                     width={150}
                     margintop={10}
+                    borderRadius={5}
+                    color={['#03AE85','#03AE85']}
                 />
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('AdditionalAmountScreen', { bookingItem: bookingItem,additionalAmountResponse:additionalAmountResponse })}>
@@ -247,7 +263,7 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                         </View>
                     ))
                 ) : (
-                    <Text style={styles.serviceItem}>No services listed</Text>
+                    <Text style={styles.serviceItem}></Text>
                 )}
             </View>
 
@@ -309,7 +325,12 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                                    
                                     Alert.alert('Bokking completed successfully!');
                                     navigation.navigate('Main')
-                                }else{
+                                }else if(allPaid & !isChecked){
+                                    Alert.alert('Bokking completed successfully!');
+                                    navigation.navigate('Main')
+                                }
+                                
+                            else{
                                     setShowModal(true)
                                 }
                               
@@ -331,9 +352,12 @@ const ServiceStatusScreen = ({ navigation, route }) => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Payment verification</Text>
+                        <View style={{backgroundColor:'#FDEEEE',padding:20,width:'100%',marginBottom:10}}>
+
                         <Text style={styles.modalSubText}>
                             ⚠️ Online payment is not detected{'\n'}If customer paid in cash, please pay the amount below
                         </Text>
+                        </View>
 
                         {/* <Text style={styles.customerName}>Customer: {bookingItem?.user_name || 'N/A'}</Text> */}
                         {/* <Text style={styles.amountText}>₹ {additionalAmountResponse?.amount || '0'}</Text> */}
@@ -402,7 +426,7 @@ const styles = StyleSheet.create({
     timerText: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: 'green',
+        color: '#000000',
         paddingHorizontal: 8,
     },
     colon: { fontSize: 24, color: 'green' },
@@ -511,6 +535,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 16,
+        marginBottom:20
     },
     inputBox: {
         flexDirection: 'row',

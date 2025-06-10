@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
+import { createAction } from '@reduxjs/toolkit';
 const BASE_URL = 'http://65.1.185.205:5000/api/';
 
 // Google Login API Call
@@ -22,7 +23,7 @@ export const loginWithGoogle = createAsyncThunk(
       const data = await response.json();
       const statusCode = response.status;
 
-      if(data.token){
+      if(data?.token){
         await AsyncStorage.setItem('authToken', data.token);
         await AsyncStorage.setItem('userData', JSON.stringify(data.user));
       }
@@ -261,6 +262,10 @@ export const registerUser = createAsyncThunk(
 
       const data = await response.json();
       console.log('Registration Response:', data); // Log the API response
+      if(data?.token){
+        await AsyncStorage.setItem('authToken', data.token);
+        // await AsyncStorage.setItem('userData', JSON.stringify(data.user));
+      }
 
       if (!response.ok) {
         throw new Error(data?.error || 'Registration failed. Try again!');
@@ -951,6 +956,8 @@ export const uploadProviderDocuments = createAsyncThunk(
   'auth/uploadProviderDocuments',
   async ({ provider_id, documents }, { rejectWithValue }) => {
     try {
+
+      console.log(provider_id,'upload doc provider')
       const token = await AsyncStorage.getItem('authToken');
       const formData = new FormData();
 
@@ -994,44 +1001,145 @@ export const uploadProviderDocuments = createAsyncThunk(
   }
 );
 
-// bankSlice.js or wherever you manage bank details
-export const createBankDetails = createAsyncThunk(
-  'bank/createBankDetails',
-  async ({ bank_name, account_holder_name, account_number, ifsc_code, provider_id }, { rejectWithValue }) => {
-    console.log('Creating bank details:', bank_name, account_holder_name, account_number, ifsc_code,provider_id);
 
+export const uploadProviderDocumentsdata = createAsyncThunk(
+  'auth/uploadProviderDocumentsdata',
+  async ({ provider_id, documents }, { rejectWithValue }) => {
     try {
 
+      console.log(provider_id,'upload doc provider heree')
       const token = await AsyncStorage.getItem('authToken');
+      const formData = new FormData();
+
+      formData.append('provider_id', provider_id);
+
+      console.log('📄 Uploading provider documents: data', documents.map(doc => doc.uri));
+
+      documents.forEach((doc, index) => {
+        if (doc?.uri) {
+          formData.append('documents', {
+            uri: Platform.OS === 'android' ? doc.uri : doc.uri.replace('file://', ''),
+            type: doc.type || 'application/pdf', // or 'image/jpeg' if it's an image
+            name: doc.name || `document_${index}.pdf`,
+          });
+        } else {
+          console.warn(`⚠️ Skipping document #${index + 1} due to missing data`);
+        }
+      });
+
+      const response = await fetch(`${BASE_URL}provider/document/create`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          Authorization: token ? `Bearer ${token}` : '',
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+      console.log('✅ Document Upload Response:', data);
+
+      if (!response.ok || data?.error) {
+        throw new Error(data.message || data.error || 'Failed to upload documents');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('❌ Document Upload Error:', error);
+      return rejectWithValue(error.message || 'Something went wrong!');
+    }
+  }
+);
+export const createBankDetails = createAsyncThunk(
+  'bank/createBankDetails',
+  async ({ bank_name, account_holder_name, account_number, ifsc_code ,provider_id}, { rejectWithValue }) => {
+    console.log('📤 Sending Bank Details:', bank_name, account_holder_name, account_number, ifsc_code,provider_id);
+
+    try {
+      // const token = await AsyncStorage.getItem('authToken');
+      // console.log(token,'token auth')
+
       const response = await fetch(`${BASE_URL}bank/create`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
+          // 'Authorization': token ? `Bearer ${token}` : '',
         },
         body: JSON.stringify({
           bank_name,
           account_holder_name,
           account_number,
           ifsc_code,
-          provider_id, // if required
+          provider_id
         }),
       });
 
-      const data = await response.json();
-      console.log(data, 'Bank Details Response');
+      // Read raw response body
+      const text = await response.text();
+      console.log(text,'here bank details')
 
-      if (!data.status) {
-        throw new Error(data.message || 'Failed to create bank details');
+      try {
+        const data = JSON.parse(text);
+        console.log('✅ Parsed Bank Details Response:', data);
+
+        if (!data.status) {
+          throw new Error(data.message || 'Failed to create bank details');
+        }
+
+        return data;
+      } catch (parseError) {
+        // console.error('❌ JSON Parse Error - Raw Response:', text);
+        return rejectWithValue('Server returned an invalid response format');
       }
-
-      return data; // Or data.result, based on your API
     } catch (error) {
+      console.error('🔥 Thunk Error:', error.message);
       return rejectWithValue(error.message || 'Something went wrong!');
     }
   }
 );
+// bankSlice.js or wherever you manage bank details
+// export const createBankDetails = createAsyncThunk(
+//   'bank/createBankDetails',
+//   async ({ bank_name, account_holder_name, account_number, ifsc_code, provider_id }, { rejectWithValue }) => {
+//     console.log('Creating bank details:', bank_name, account_holder_name, account_number, ifsc_code,provider_id);
+
+//     try {
+
+//       const token = await AsyncStorage.getItem('authToken');
+//       const response = await fetch(`${BASE_URL}bank/create`, {
+//         method: 'POST',
+//         headers: {
+//           'Accept': 'application/json',
+//           'Content-Type': 'application/json',
+//           'Authorization': token ? `Bearer ${token}` : '',
+//         },
+//         body: JSON.stringify({
+//           // bank_name: bank_name,
+//           // account_holder_name: account_holder_name,
+//           // account_number:account_number,
+//           // ifsc_code: ifsc_code
+//           bank_name,
+//           account_holder_name,
+//           account_number,
+//           ifsc_code,
+//           // provider_id, 
+//         }),
+//       });
+
+//       const data = await response.json();
+//       console.log(data, 'Bank Details Response');
+
+//       if (!data.status) {
+//         throw new Error(data.message || 'Failed to create bank details');
+//       }
+
+//       return data; // Or data.result, based on your API
+//     } catch (error) {
+//       return rejectWithValue(error.message || 'Something went wrong!');
+//     }
+//   }
+// );
 
 export const sendServiceProviderLocation = createAsyncThunk(
   'location/sendServiceProviderLocation',
@@ -1457,6 +1565,7 @@ export const fetchAdditionalAmount = createAsyncThunk(
     }
   }
 );
+export const resetDocumentUpload = createAction('auth/resetDocumentUpload');
 
 const authSlice = createSlice({
   name: 'auth',
@@ -1473,6 +1582,9 @@ const authSlice = createSlice({
     additionalAmount: [],
     loadingAdditionalAmount: false,
     additionalAmountError: null,
+    uploading: false,
+    uploadResponse: null,
+    uploadError: null,
   },
   reducers: {
     logout: (state) => {
@@ -1742,6 +1854,37 @@ const authSlice = createSlice({
       .addCase(fetchAdditionalAmount.rejected, (state, action) => {
         state.loadingAdditionalAmount = false;
         state.additionalAmountError = action.payload;
+      })
+
+      .addCase(uploadProviderDocuments.pending, (state) => {
+        state.uploading = true;
+        state.uploadError = null;
+        state.uploadResponse = null; // Clear previous response
+      })
+      .addCase(uploadProviderDocuments.fulfilled, (state, action) => {
+        state.uploading = false;
+        state.uploadResponse = action.payload;
+      })
+      .addCase(uploadProviderDocuments.rejected, (state, action) => {
+        state.uploading = false;
+        state.uploadError = action.payload;
+      })
+      .addCase(resetDocumentUpload, (state) => {
+        state.uploading = false;
+        state.uploadResponse = null;
+        state.uploadError = null;
+      })
+
+      .addCase(uploadProviderDocumentsdata.pending, (state) => {
+        state.uploading = true;
+      })
+      .addCase(uploadProviderDocumentsdata.fulfilled, (state, action) => {
+        state.uploading = false;
+        state.uploadResponse = action.payload;
+      })
+      .addCase(uploadProviderDocumentsdata.rejected, (state, action) => {
+        state.uploading = false;
+        state.uploadError = action.payload;
       })
   },
 });

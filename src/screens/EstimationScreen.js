@@ -17,7 +17,7 @@ const EstimationScreen = ({ navigation,route }) => {
 
 
   const handleSave = async () => {
-    if ( !amount || !hours || !minutes || !description) {
+    if ( !amount  || !minutes || !description) {
       Alert.alert('Validation Error', 'Please fill in all fields .');
       return;
     }
@@ -58,7 +58,7 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
       amount: parseFloat((parseFloat(amount) * 1.18).toFixed(2)),
       booking_id: bookingItem?.booking_id,
       description: description,
-      number_of_days_to_completed: parseInt(hours),
+      number_of_days_to_completed: 0,
       number_of_hours_to_completed: parseInt(minutes),
       image:profileImagePath
     };
@@ -144,15 +144,16 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
   />
   <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>+18% GST</Text>
 </View>
-
-      <View style={styles.row}>
+      {/* <View style={styles.row}>
         <View style={{ flex: 1, marginRight: 5 }}>
           <TextInputBox placeholder="Duration Days" value={hours} onChangeText={setHours} keyboardType="numeric" />
         </View>
         <View style={{ flex: 1, marginLeft: 5 }}>
           <TextInputBox placeholder="Duration Hours" value={minutes} onChangeText={setMinutes} keyboardType="numeric" />
         </View>
-      </View>
+      </View> */}
+               <TextInputBox placeholder="Duration Hours" value={minutes} onChangeText={setMinutes} keyboardType="numeric" />
+
       <TextInputBox 
         placeholder="Description of service" 
         value={description} 
@@ -163,7 +164,10 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
         blurOnSubmit={true}
       />
 
-      <GradientButton title="Save" onPress={handleSave} />
+      <GradientButton title="Save" onPress={handleSave} width={'100%'} />
+
+      <Image source={require('../assets/Image.png')} resizeMethod='resize' resizeMode="stretch" style={styles.banner} />
+
     </View>
   </TouchableWithoutFeedback>
   );
@@ -179,7 +183,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
     marginBottom: 10,
-    height: 180,
+    height: 150,
     justifyContent: 'center',
   },
   imageIcon: { width: 40, height: 40, marginBottom: 8 },
@@ -203,6 +207,8 @@ const styles = StyleSheet.create({
     color: 'black'
   },
   backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
+  banner: { width: "100%", height: 100, borderRadius: 10, marginBottom: 20 ,marginTop:12},
+
 
 });
 

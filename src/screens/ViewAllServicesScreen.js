@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  serviceIcon: { width: 40, height: 40, marginRight: 15 },
+  serviceIcon: { width: 50, height: 45, marginRight: 15 },
   serviceText: { fontSize: 16, fontWeight: "500" },
   backButton: { marginBottom: 20, flexDirection: 'row',alignItems:'center' },
   backIcon: {
@@ -166,8 +166,8 @@ const styles = StyleSheet.create({
     color: "white",
   },
   grayBox: {
-    width: 80,
-    backgroundColor: "gray",
+    width: 100,
+    backgroundColor: "#C4C4C4",
     alignItems:'center',
     justifyContent:'center'
   },

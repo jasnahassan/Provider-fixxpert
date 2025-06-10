@@ -36,7 +36,7 @@ setDescription(additionalAmountResponse?.description)
   // };
 
   const handleUpdate = () => {
-    if (!amount  || !completionTime || !works || !description) {
+    if (!amount  || !completionTime  || !description) {
       alert('Please fill in all fields.');
       return;
     }
@@ -49,7 +49,7 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
       amount: parseFloat(totalAmountWithGst),
       booking_id: bookingItem?.booking_id,
       description: description,
-      number_of_days_to_completed: works,
+      number_of_days_to_completed: 0,
       number_of_hours_to_completed: parseInt(completionTime),
     };
   
@@ -105,14 +105,15 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
         onChangeText={setCompletionTime}
         keyboardType="numeric"
       /> */}
-      <View style={styles.row}>
+      {/* <View style={styles.row}>
         <View style={{ flex: 1, marginRight: 5 }}>
           <TextInputBox placeholder="Duration Days" value={works} onChangeText={setWorks} keyboardType="numeric" />
         </View>
         <View style={{ flex: 1, marginLeft: 5 }}>
           <TextInputBox placeholder="Duration Hours" value={completionTime} onChangeText={setCompletionTime} keyboardType="numeric" />
         </View>
-      </View>
+      </View> */}
+      <TextInputBox placeholder="Duration Hours" value={completionTime} onChangeText={setCompletionTime} keyboardType="numeric" />
 
       {/* <TextInputBox
         placeholder="Works"

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect} from 'react';
 import { ScrollView, StyleSheet, Text, View, Alert } from 'react-native';
 import TextInputBox from '../../components/TextInputBox';
 import GradientButton from '../../components/GradientButton';
 import { useDispatch, useSelector } from 'react-redux';
-import {  registerUser,uploadProviderDocuments , createBankDetails} from '../../redux/AuthSlice';
+import { registerUser, uploadProviderDocuments, createBankDetails, resetDocumentUpload, uploadProviderDocumentsdata } from '../../redux/AuthSlice';
 
 const BankDetailsScreen = ({ navigation, route }) => {
   const [bankName, setBankName] = useState('');
@@ -12,6 +12,13 @@ const BankDetailsScreen = ({ navigation, route }) => {
   const [confirmAccountNumber, setConfirmAccountNumber] = useState('');
   const [ifsc, setIfsc] = useState('');
   const dispatch = useDispatch();
+
+  useEffect(()=>{
+    const bankData = { bankName, accountHolderName, accountNumber, ifsc };
+    const allUserData = { ...route.params, bankDetails: bankData };
+    const { idVerification } = allUserData;
+    console.log(idVerification,'heree images')
+  },[])
 
   const handleSubmit = async () => {
     try {
@@ -41,17 +48,17 @@ const BankDetailsScreen = ({ navigation, route }) => {
         })
       );
 
-     
-    if (!uploadProviderDocuments.fulfilled.match(selfieResult)) {
-      throw new Error('Selfie upload failed');
-    }
 
-    const selfieUploadData = selfieResult.payload;
-    const profileImagePath = selfieUploadData?.[0]?.path;
+      if (!uploadProviderDocuments.fulfilled.match(selfieResult)) {
+        throw new Error('Selfie upload failed');
+      }
 
-    if (!profileImagePath) {
-      throw new Error('Failed to get profile image path');
-    }
+      const selfieUploadData = selfieResult.payload;
+      const profileImagePath = selfieUploadData?.[0]?.path;
+
+      if (!profileImagePath) {
+        throw new Error('Failed to get profile image path');
+      }
 
       // 2. Register user
       const registrationPayload = {
@@ -78,8 +85,8 @@ const BankDetailsScreen = ({ navigation, route }) => {
       };
 
       const regResult = await dispatch(registerUser(registrationPayload)).unwrap();
-      console.log(regResult,'resul ref')
-      const providerId = regResult?.service_provider_id || regResult?.service_provider_id;
+      console.log(regResult, 'resul ref')
+      const providerId = regResult?.service_provider_id;
 
       if (!providerId) {
         throw new Error('Provider ID not returned from registration');
@@ -88,34 +95,50 @@ const BankDetailsScreen = ({ navigation, route }) => {
       // 3. Upload identity and address proofs
       const docFiles = [];
 
-      if (idVerification?.identityFile) {
+      if (idVerification?.identityImage) {
         docFiles.push({
-          uri: idVerification.identityFile,
+          uri: idVerification.identityImage,
           type: 'image/jpeg',
           name: 'identity_proof.jpg',
         });
       }
 
-      if (idVerification?.addressFile) {
+      if (idVerification?.addressImage) {
         docFiles.push({
-          uri: idVerification.addressFile,
+          uri: idVerification.addressImage,
           type: 'image/jpeg',
           name: 'address_proof.jpg',
         });
       }
-
+      // dispatch(resetDocumentUpload());
+      // dispatch(uploadProviderDocuments({ provider_id, documents }));
+      console.log('Calling uploadProviderDocumentsdata with:', {
+        provider_id: providerId,
+        documents: docFiles,
+        id:idVerification
+      });
       if (docFiles.length > 0) {
+        console.log('📦 Uploading final documents:', providerId, docFiles);
         const docResult = await dispatch(
-          uploadProviderDocuments({
+          uploadProviderDocumentsdata({
             provider_id: providerId,
             documents: docFiles,
           })
         );
+        // const docResult = await dispatch(
+        //   uploadProviderDocumentsdata({
+        //     // provider_id: regResult?.service_provider_id,
+        //     provider_id: 5,
+        //     documents: docFiles,
+        //   })
+        // );
 
-        if (!uploadProviderDocuments.fulfilled.match(docResult)) {
+        if (!uploadProviderDocumentsdata.fulfilled.match(docResult)) {
           throw new Error('Documents upload failed');
         }
       }
+
+
       const bankResult = await dispatch(createBankDetails({
         bank_name: bankName,
         account_holder_name: accountHolderName,
@@ -124,18 +147,18 @@ const BankDetailsScreen = ({ navigation, route }) => {
         provider_id: providerId,
 
       }));
-      
-      console.log(bankResult,'heree')
+
+      console.log(bankResult, 'heree')
       // if (!createBankDetails.fulfilled.match(bankResult)) {
       //   throw new Error('Bank details creation failed');
       // }
-      
+
       Alert.alert('Success', 'Registration completed successfully');
       navigation.navigate('Login');
     } catch (error) {
       console.error('❌ Error:', error);
       Alert.alert('Registration Error', error);
-      
+
     }
   };
 

@@ -207,8 +207,8 @@ const TrackingScreen = ({ navigation, route }) => {
           <Text style={styles.cardText}>{bookingItem?.user?.name}</Text>
         </View>
       </View>
-
       <GradientButton title="Arrived" onPress={() => handleArrivePress()} />
+      <Image source={require('../assets/Image.png')} resizeMethod='resize' resizeMode="stretch" style={styles.banner} />
     </View>
   );
 };
@@ -229,11 +229,11 @@ const styles = StyleSheet.create({
     color: 'black'
   },
   serviceCard: {
-    backgroundColor: "#fff",
+    backgroundColor: "white",
     borderRadius: 12,
-    padding: 16,
-    marginVertical: 14,
-    marginHorizontal: 7,
+    padding: 14,
+    marginVertical: 0,
+    marginHorizontal: 6,
     elevation: 2,
   },
   cardHeader: {
@@ -265,6 +265,7 @@ const styles = StyleSheet.create({
     height: 16,
   },
   backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
+  banner: { width: "100%", height: 100, borderRadius: 10, marginBottom: 20 ,marginTop:12},
 });
 
 export default TrackingScreen;

@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: '#f2f2f2',
         borderRadius: 12,
-        padding: 16,
+        padding: 10,
         marginBottom: 20,
         alignItems: 'center'
     },
@@ -152,10 +152,15 @@ const styles = StyleSheet.create({
         borderRadius: 9,
         borderWidth: 2,
         borderColor: '#093759',
-        marginRight: 10
+        marginRight: 10,
     },
     selectedRadio: {
-        backgroundColor: '#093759'
+        backgroundColor: '#093759',
+        // backgroundColor: 'red',
+        
+     
+      
+
     },
     optionText: {
         fontSize: 14,
