@@ -90,6 +90,10 @@ const IDVerificationScreen = ({ navigation, route }) => {
       Alert.alert('Error', 'Please enter Identity Proof');
       return;
     }
+    if (identityProof.length != 12) {
+      Alert.alert('Error', 'Please enter Valid Adhar number 12 digit');
+      return;
+    }
     if (!addressProof.trim()) {
       Alert.alert('Error', 'Please enter Address Proof');
       return;
@@ -118,9 +122,10 @@ const IDVerificationScreen = ({ navigation, route }) => {
       <Text style={styles.title}>ID Verification</Text>
 
       <TextInputBox
-        placeholder="Identity Proof (Aadhaar/PAN)"
+        placeholder="Identity Proof (Aadhaar No)"
         value={identityProof}
         onChangeText={setIdentityProof}
+        keyboardType="numeric" 
       />
       <Text style={styles.label}>Upload Identity Proof</Text>
       <TouchableOpacity onPress={() => handlePickImage('identity')} style={styles.uploadBox}>
@@ -134,6 +139,7 @@ const IDVerificationScreen = ({ navigation, route }) => {
         placeholder="Address Proof"
         value={addressProof}
         onChangeText={setAddressProof}
+        
       />
 
 

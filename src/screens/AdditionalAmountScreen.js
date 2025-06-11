@@ -1,5 +1,5 @@
 import React, { useState ,useEffect} from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity ,Image} from 'react-native';
 import TextInputBox from '../components/TextInputBox';
 import { useDispatch } from 'react-redux';
 import { createAdditionalAmount,updateAdditionalAmount } from '../redux/AuthSlice';
@@ -71,6 +71,10 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={require('../assets/back-arrow.png')} style={styles.backIcon} />
+          <Text style={styles.title}>Update additional amount</Text>
+        </TouchableOpacity>
        <View style={styles.idRow}>
         <Text style={styles.idLabel}>ID</Text>
         <Text style={styles.idValue}>#{bookingItem?.booking_id}</Text>
@@ -132,6 +136,9 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
       <TouchableOpacity style={styles.updateButton} onPress={handleUpdate}>
         <Text style={styles.updateButtonText}>Update</Text>
       </TouchableOpacity>
+
+      <Image source={require('../assets/Image.png')} resizeMethod='resize' resizeMode="stretch" style={styles.banner} />
+
     </ScrollView>
   );
 };
@@ -139,7 +146,7 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    paddingTop: 40,
+    // paddingTop: 40,
     backgroundColor: '#FFF',
     flexGrow: 1,
   },
@@ -177,7 +184,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#D22B2B',
   },
-  row: { flexDirection: 'row', justifyContent: 'space-between' }
+  row: { flexDirection: 'row', justifyContent: 'space-between' },
+  banner: { width: "100%", height: 100, borderRadius: 10, marginBottom: 20 ,marginTop:52},
+  backIcon: {
+    height: 20,
+    width: 20,
+    marginTop: 5,
+    marginRight: 15,
+    resizeMode: 'contain'
+  },
+  title: {
+    fontSize: 20,
+    color: 'black'
+  },
+  backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
 });
 
 export default AdditionalAmountScreen;

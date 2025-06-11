@@ -15,14 +15,14 @@ import { updateBookingstatus } from '../redux/AuthSlice';
 import GradientButton from '../components/GradientButton';
 
 
-const CancelBookingScreen = ({ navigation,route }) => {
-    
+const CancelBookingScreen = ({ navigation, route }) => {
+
     const { selectedBooking } = route.params;
     const [selectedReason, setSelectedReason] = useState('');
     const [customReason, setCustomReason] = useState('');
     const dispatch = useDispatch();
     // const route = useRoute();
-   
+
     const [successModalVisible, setSuccessModalVisible] = useState(false);
 
 
@@ -45,7 +45,7 @@ const CancelBookingScreen = ({ navigation,route }) => {
             return;
         }
 
-        dispatch(updateBookingstatus({ bookingId:selectedBooking?.booking_id,booking_status:4 }))
+        dispatch(updateBookingstatus({ bookingId: selectedBooking?.booking_id, booking_status: 4 }))
             .unwrap()
             .then(() => {
                 setSuccessModalVisible(true);
@@ -78,8 +78,21 @@ const CancelBookingScreen = ({ navigation,route }) => {
             </View>
 
             <Text style={styles.label}>Reason For Cancellation</Text>
-
             {reasons.map((reason, index) => (
+                <TouchableOpacity
+                    key={index}
+                    style={styles.optionRow}
+                    onPress={() => setSelectedReason(reason)}
+                >
+                    <View style={styles.radioOuter}>
+                        {selectedReason === reason && <View style={styles.radioInner} />}
+                    </View>
+                    <Text style={styles.optionText}>{reason}</Text>
+                </TouchableOpacity>
+            ))}
+
+
+            {/* {reasons.map((reason, index) => (
                 <TouchableOpacity
                     key={index}
                     style={styles.optionRow}
@@ -88,7 +101,7 @@ const CancelBookingScreen = ({ navigation,route }) => {
                     <View style={[styles.radioCircle, selectedReason === reason && styles.selectedRadio]} />
                     <Text style={styles.optionText}>{reason}</Text>
                 </TouchableOpacity>
-            ))}
+            ))} */}
 
             <TextInput
                 style={styles.input}
@@ -115,7 +128,7 @@ const CancelBookingScreen = ({ navigation,route }) => {
                             title="Back To Home"
                             onPress={() => {
                                 setSuccessModalVisible(false);
-                                navigation.navigate('Main') 
+                                navigation.navigate('Main')
                             }}
                             margintop={20}
                         />
@@ -137,10 +150,10 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         alignItems: 'center'
     },
-  
-    serviceTitle: { fontSize: 18, fontWeight: '600',color:'black' },
+
+    serviceTitle: { fontSize: 18, fontWeight: '600', color: 'black' },
     price: { fontSize: 16, color: '#888', marginTop: 4 },
-    label: { fontSize: 15, fontWeight: '500', marginBottom: 10 ,color:'black'},
+    label: { fontSize: 15, fontWeight: '500', marginBottom: 10, color: 'black' },
     optionRow: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -157,11 +170,30 @@ const styles = StyleSheet.create({
     selectedRadio: {
         backgroundColor: '#093759',
         // backgroundColor: 'red',
-        
-     
-      
+
+
+
 
     },
+
+    radioOuter: {
+        height: 22,
+        width: 22,
+        borderRadius: 11,
+        borderWidth: 2,
+        borderColor: '#093759',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 10,
+    },
+
+    radioInner: {
+        height: 12,
+        width: 12,
+        borderRadius: 6,
+        backgroundColor: '#093759',
+    },
+
     optionText: {
         fontSize: 14,
         color: '#333'
@@ -175,7 +207,7 @@ const styles = StyleSheet.create({
         minHeight: 80,
         textAlignVertical: 'top',
         backgroundColor: '#f9f9f9',
-        color:'black'
+        color: 'black'
     },
     cancelBtn: {
         backgroundColor: '#093759',
@@ -211,8 +243,8 @@ const styles = StyleSheet.create({
         height: 90,
         marginBottom: 25,
         marginTop: 20,
-        padding:10,
-        margin:10
+        padding: 10,
+        margin: 10
     },
     serviceImage: {
         width: '100%',

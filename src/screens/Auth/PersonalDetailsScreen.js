@@ -32,6 +32,7 @@ const handleNext = () => {
     if (!city) return Alert.alert('Validation Error', 'Please enter City');
     if (!state.trim()) return Alert.alert('Validation Error', 'Please enter State');
     if (!pincode.trim()) return Alert.alert('Validation Error', 'Please enter Pincode');
+    if (pincode.length != 6 ) return Alert.alert('Validation Error', 'Please enter a valid 6-digit pincodee');
 
     const personalDetails = {
       dob,
@@ -66,7 +67,7 @@ const handleNext = () => {
             items={cities}
           />
       <TextInputBox placeholder="State" value={state} onChangeText={setstate} />
-      <TextInputBox placeholder="Pincode" value={pincode} onChangeText={setPincode} />
+      <TextInputBox placeholder="Pincode" value={pincode} keyboardType="numeric" onChangeText={setPincode} />
       <GradientButton title="Next" width={'100%'} onPress={handleNext} />
     </ScrollView>
   );

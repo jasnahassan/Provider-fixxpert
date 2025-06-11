@@ -137,9 +137,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
+    paddingBottom:45,
+    paddingTop:10,
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#ccc',
+    // marginBottom:20
   },
   input: {
     flex: 1,

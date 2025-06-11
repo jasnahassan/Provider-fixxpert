@@ -107,6 +107,11 @@ const RegisterScreen = ({ navigation }) => {
             Alert.alert('Error', 'WhatsApp number is required');
             return;
         }
+
+        if (whatsappNumber?.length !== 10 || !/^\d+$/.test(whatsappNumber)) {
+            Alert.alert('Error', 'Invalid number. Please enter a valid 10-digit mobile number.');
+            return;
+        }
         if (password.length < 8 || password.length > 15) {
             Alert.alert('Error', 'Password must be between 8 to 15 characters');
             return;
@@ -166,7 +171,8 @@ const RegisterScreen = ({ navigation }) => {
                                 onChangeText={setWhatsappNumber}
                                 height={40}
                                 style={{ flex: 3 }}
-                                keyboardType="phone-pad"
+                                keyboardType="numeric" 
+                                // keyboardType="phone-pad"
                     />
 
 

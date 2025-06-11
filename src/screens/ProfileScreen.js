@@ -100,11 +100,17 @@ const ProfileScreen = ({ navigation }) => {
         .then((profileData) => {
           console.log('User profile loaded:', profileData);
           // set state if needed
-
+          setAddress(
+            [profileData?.service_provider_address1, profileData?.service_provider_address2]
+              .filter(Boolean)
+              .join(', ')
+          )
+        
           setFullName(profileData?.service_provider_name); // example usage
           setEmail(profileData?.service_provider_email);
           setContactNumber(profileData?.service_provider_mobile)
           setProfilePic(profileData?.service_provider_profile_image_file_id)
+        
         })
         .catch((err) => {
           console.log('Failed to fetch profile:', err);
@@ -161,18 +167,18 @@ const ProfileScreen = ({ navigation }) => {
   //       Alert.alert('Error', err);
   //     });
   // };
-  useEffect(() => {
-    dispatch(fetchAllAddresses())
-      .unwrap()
-      .then(data => {
-        console.log('Fetched addresses:', data[0]);
-        setFetchedAddresses(data[0]);
-        setAddress(data?.length > 0 ? data[0]?.address_line1 + "," + data[0]?.address_line2 : '') // This goes to your state
-      })
-      .catch(error => {
-        console.error('Error fetching addresses:', error);
-      });
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(fetchAllAddresses())
+  //     .unwrap()
+  //     .then(data => {
+  //       console.log('Fetched addresses:', data[0]);
+  //       setFetchedAddresses(data[0]);
+  //       setAddress(data?.length > 0 ? data[0]?.address_line1 + "," + data[0]?.address_line2 : '') // This goes to your state
+  //     })
+  //     .catch(error => {
+  //       console.error('Error fetching addresses:', error);
+  //     });
+  // }, [dispatch]);
 
   // Add Logout Button to Header
   useLayoutEffect(() => {
@@ -525,9 +531,9 @@ const ProfileScreen = ({ navigation }) => {
         <TextInputBox placeholder="Full Name" value={fullName} onChangeText={setFullName} />
         <TextInputBox  placeholder="Email" editable={false} value={email} onChangeText={setEmail} />
         {contactNumber ? <TextInputBox placeholder="Contact Number" editable={false} value={contactNumber} onChangeText={setContactNumber} /> : ''}
-        {
-          address ? <TextInputBox placeholder="Address" value={address} editable={false} onChangeText={setAddress} /> : ''
-        }
+       
+          <TextInputBox placeholder="Address" value={address} editable={false} onChangeText={setAddress} /> 
+     
         {/* <TextInputBox placeholder="Select Country" value={country} onChangeText={setCountry} /> */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
 

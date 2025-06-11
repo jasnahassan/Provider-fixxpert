@@ -10,7 +10,7 @@ import {
   Linking
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { updateBookingstatus } from '../redux/AuthSlice';
+import { updateBookingstatus ,fetchAdditionalAmount} from '../redux/AuthSlice';
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
 
@@ -48,10 +48,34 @@ console.log(serviceItem,'hhh')
     //     alert('Please select or enter a reason');
     //     return;
     // }
+    if (serviceItem?.booking_status_id >= 10) {
+      dispatch(fetchAdditionalAmount(serviceItem?.booking_id))
+      .unwrap()
+      .then(res => {
+        // First update booking status
+           console.log(res,'here additional amount')
+
+            navigation.navigate('ServiceStatusScreen', { bookingItem: serviceItem ,additionalAmountResponse: res[0],});
+            // After status update, show alert and navigate
+            // Alert.alert('Success', 'Additional amount submitted!');
+            // navigation.navigate('ServiceStatusScreen', {
+            //   bookingItem,
+            //   additionalAmountResponse: res,
+            // });
+        
+      })
+      .catch(err => {
+        Alert.alert('Error', `Additional amount submission failed: ${err}`);
+      });
+    
+      return;
+  }
+
 
     dispatch(updateBookingstatus({ bookingId:serviceItem?.booking_id,booking_status:7 }))
         .unwrap()
         .then(() => {
+
           navigation.navigate('TrackingScreen', { bookingItem:serviceItem })
             // setSuccessModalVisible(true);
             // navigation.navigate('CancelConfirmation');
@@ -86,13 +110,13 @@ console.log(serviceItem,'hhh')
       <Text style={styles.subHeader}>About Customer</Text>
       <View style={styles.card}>
         <View style={styles.row}>
-          <View  style={styles.avatar}>
+          {/* <View  style={styles.avatar}>
             
-          </View>
-          {/* <Image
-            source={{uri:serviceItem?.user.service_provider_profile_image_file_id}}
+          </View> */}
+          <Image
+            source={{uri:serviceItem?.user.image}}
             style={styles.avatar}
-          /> */}
+          />
           <View style={styles.info}>
           <View style={styles.cardRow}>
           {/* <Image source={require('../assets/Profilered.png')} style={styles.icon} /> */}
@@ -148,7 +172,7 @@ console.log(serviceItem,'hhh')
           title="Customer Location"
         />
       </MapView>
-{serviceItem.booking_status == 'ACCEPTED' && (
+{serviceItem.booking_status_id != 13 && (
     <View style={styles.buttonRow}>
     <TouchableOpacity onPress={()=> handleStartPress()}  style={styles.startBtn}>
       <Text style={styles.btnTextWhite}>Start</Text>
@@ -158,7 +182,7 @@ console.log(serviceItem,'hhh')
     </TouchableOpacity>
   </View>
 
-  )}  
+ )}   
       {/* Start / Cancel Buttons */}
     
     </ScrollView>

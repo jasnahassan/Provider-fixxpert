@@ -23,12 +23,37 @@ const BankDetailsScreen = ({ navigation, route }) => {
   const handleSubmit = async () => {
     try {
       // Validation
+      // if (!bankName || !accountHolderName || !accountNumber || !confirmAccountNumber || !ifsc) {
+      //   return Alert.alert('Missing Fields', 'Please fill all bank details');
+      // }
+      // if (accountNumber !== confirmAccountNumber) {
+      //   return Alert.alert('Mismatch', 'Account numbers do not match');
+      // }
       if (!bankName || !accountHolderName || !accountNumber || !confirmAccountNumber || !ifsc) {
         return Alert.alert('Missing Fields', 'Please fill all bank details');
-      }
-      if (accountNumber !== confirmAccountNumber) {
-        return Alert.alert('Mismatch', 'Account numbers do not match');
-      }
+    }
+    
+    // Account number length validation (9 to 18 digits)
+    if (accountNumber.length < 9 || accountNumber.length > 18) {
+        return Alert.alert('Invalid Account Number', 'Account number must be between 9 to 18 digits.');
+    }
+    
+    // Confirm account number match
+    if (accountNumber !== confirmAccountNumber) {
+        return Alert.alert('Mismatch', 'Account number and confirm account number do not match.');
+    }
+    
+    // IFSC length validation
+    if (ifsc.length !== 11) {
+        return Alert.alert('Invalid IFSC', 'IFSC code must be exactly 11 characters.');
+    }
+    
+    // IFSC format validation (optional but recommended)
+    // const ifscPattern = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+    // if (!ifscPattern.test(ifsc.toUpperCase())) {
+    //     return Alert.alert('Invalid IFSC', 'Please enter a valid IFSC code.');
+    // }
+    
 
       const bankData = { bankName, accountHolderName, accountNumber, ifsc };
       const allUserData = { ...route.params, bankDetails: bankData };
@@ -70,7 +95,7 @@ const BankDetailsScreen = ({ navigation, route }) => {
         address2: allUserData?.personalDetails?.address,
         city: allUserData?.personalDetails?.city,
         profile_image_file_id: profileImagePath,
-        active: true,
+        active: false,
         dob: allUserData?.personalDetails?.dob,
         gender: allUserData?.personalDetails?.gender,
         nationality: allUserData?.personalDetails?.nationality,
@@ -153,7 +178,7 @@ const BankDetailsScreen = ({ navigation, route }) => {
       //   throw new Error('Bank details creation failed');
       // }
 
-      Alert.alert('Success', 'Registration completed successfully');
+      Alert.alert('Success', 'your registration request has been submitted. please wait while we review your account');
       navigation.navigate('Login');
     } catch (error) {
       console.error('❌ Error:', error);
