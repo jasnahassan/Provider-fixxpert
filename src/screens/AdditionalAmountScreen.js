@@ -2,7 +2,7 @@ import React, { useState ,useEffect} from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity ,Image} from 'react-native';
 import TextInputBox from '../components/TextInputBox';
 import { useDispatch } from 'react-redux';
-import { createAdditionalAmount,updateAdditionalAmount } from '../redux/AuthSlice';
+import { createAdditionalAmount,updateAdditionalAmount ,fetchAds} from '../redux/AuthSlice';
 
 const AdditionalAmountScreen = ({navigation,route}) => {
   const { bookingItem ,additionalAmountResponse} = route.params;
@@ -12,6 +12,13 @@ const AdditionalAmountScreen = ({navigation,route}) => {
   const [works, setWorks] = useState('');
   const [description, setDescription] = useState('');
   const dispatch = useDispatch();
+  const { ads, loading, error } = useSelector(state => state.auth); 
+
+
+  useEffect(() => {
+    dispatch(fetchAds());
+  }, []);
+
 
 useEffect(()=>{
 console.log(additionalAmountResponse,'heree resp')
@@ -136,8 +143,10 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
       <TouchableOpacity style={styles.updateButton} onPress={handleUpdate}>
         <Text style={styles.updateButtonText}>Update</Text>
       </TouchableOpacity>
+      <Image source={{uri:ads[1]?.image}} resizeMethod='resize' resizeMode="stretch" style={styles.banner} />
 
-      <Image source={require('../assets/Image.png')} resizeMethod='resize' resizeMode="stretch" style={styles.banner} />
+
+      {/* <Image source={require('../assets/Image.png')} resizeMethod='resize' resizeMode="stretch" style={styles.banner} /> */}
 
     </ScrollView>
   );

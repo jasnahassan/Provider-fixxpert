@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef ,useEffect} from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import GradientButton from '../components/GradientButton';
 import TextInputBox from '../components/TextInputBox';
@@ -16,6 +16,7 @@ const OtpVerificationScreen = ({ navigation, route }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [timer, setTimer] = useState(30);
   const [resendEnabled, setResendEnabled] = useState(false);
+  const [loadingindicator, setLoadingindicator] = useState(false);
 
   useEffect(() => {
     if (timer > 0) {
@@ -30,7 +31,7 @@ const OtpVerificationScreen = ({ navigation, route }) => {
 
   const handleResendOtp = () => {
     if (!resendEnabled) return;
-
+   
     dispatch(forgotPassword({ email }));  // Make sure you pass email here
     setTimer(30); // Restart timer
     setResendEnabled(false);
@@ -73,7 +74,10 @@ const OtpVerificationScreen = ({ navigation, route }) => {
     }
 
     try {
-      const response = await dispatch(resetPassword({ email, reset_code: otpCode, new_password: password })).unwrap();
+      setLoadingindicator(true)
+      const response = await dispatch(resetPassword({ email, reset_code: otpCode, new_password: password })).unwrap(
+        setLoadingindicator(false)
+      );
 
       Alert.alert('Success', 'Password reset successfully.');
       navigation.navigate('Login'); // Navigate to login after successful reset
@@ -132,6 +136,9 @@ const OtpVerificationScreen = ({ navigation, route }) => {
       />
       <View style={{ height: 50 }} />
       <GradientButton title="Verify OTP" onPress={handleVerifyOtp} />
+      {loadingindicator ? ( <View style={styles.loaderOverlay}>
+      <ActivityIndicator size="large" color="#093759" />
+    </View>) :''} 
     </View>
   );
 };
@@ -173,6 +180,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     borderRadius: 8,
     marginHorizontal: 5,
+    color:'black'
   },
   activeInput: {
     borderColor: '#DB3043',
@@ -183,6 +191,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   spaceBeforeButton: { height: 25 },
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    zIndex: 9999
+  }
 });
 
 export default OtpVerificationScreen;

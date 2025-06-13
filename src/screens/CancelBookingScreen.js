@@ -7,7 +7,8 @@ import {
     StyleSheet,
     ScrollView,
     Image,
-    Modal
+    Modal,
+    ActivityIndicator
 } from 'react-native';
 // import { useRoute } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,6 +21,7 @@ const CancelBookingScreen = ({ navigation, route }) => {
     const { selectedBooking } = route.params;
     const [selectedReason, setSelectedReason] = useState('');
     const [customReason, setCustomReason] = useState('');
+    const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
     // const route = useRoute();
 
@@ -44,14 +46,16 @@ const CancelBookingScreen = ({ navigation, route }) => {
             alert('Please select or enter a reason');
             return;
         }
-
+        setLoading(true)
         dispatch(updateBookingstatus({ bookingId: selectedBooking?.booking_id, booking_status: 4 }))
             .unwrap()
             .then(() => {
+                setLoading(false)
                 setSuccessModalVisible(true);
                 // navigation.navigate('CancelConfirmation');
             })
             .catch((err) => {
+                setLoading(false)
                 console.log('Cancel error:', err);
                 alert('Failed to cancel booking');
             });
@@ -135,7 +139,9 @@ const CancelBookingScreen = ({ navigation, route }) => {
                     </View>
                 </View>
             </Modal>
-
+            {loading ? ( <View style={styles.loaderOverlay}>
+      <ActivityIndicator size="large" color="#093759" />
+    </View>) :''}
         </ScrollView>
     );
 };
@@ -257,6 +263,14 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 20,
     },
+    loaderOverlay: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        zIndex: 9999
+      }
 
 });
 

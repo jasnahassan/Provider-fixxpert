@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity ,Image} from 'react-native';
+import React, { useState,useEffect } from 'react';
+import { View, Text, StyleSheet, Alert, TouchableOpacity ,Image,ActivityIndicator} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';  // Import SafeAreaView
 import TextInputBox from '../components/TextInputBox';
 import GradientButton from '../components/GradientButton';
@@ -8,6 +8,7 @@ import { forgotPassword } from '../redux/AuthSlice'; // Import the forgotPasswor
 
 const ForgotPasswordScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
+    const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
 
     const validateEmail = (email) => {
@@ -23,8 +24,10 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
         try {
             // Dispatch the forgotPassword action
+            setLoading(true)
             const response = await dispatch(forgotPassword({ email })).unwrap();
             console.log(response,'hre')
+            setLoading(false)
             // if (response) {
                 // Navigate to OTP verification screen if successful
                 navigation.navigate('OtpVerification', { email });
@@ -59,6 +62,9 @@ const ForgotPasswordScreen = ({ navigation }) => {
                 borderRadius={8}
                 // width={'100%'}
             />
+             {loading ? ( <View style={styles.loaderOverlay}>
+      <ActivityIndicator size="large" color="#093759" />
+    </View>) :''} 
         </SafeAreaView>
     );
 };
@@ -105,6 +111,14 @@ const styles = StyleSheet.create({
         color: '#083885',
         fontWeight: '600',
     },
+    loaderOverlay: {
+        position: 'absolute',
+        top: 0, left: 0, right: 0, bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.3)',
+        zIndex: 9999
+      }
 });
 
 

@@ -18,6 +18,7 @@ const ServiceStatusScreen = ({ navigation, route }) => {
     const [userdetails, setUserdetails] = useState('');
     const [isChecked, setIsChecked] = useState(false);
     const timerRef = useRef(null);
+    const [loadingindicator, setLoadingindicator] = useState(false);
     const additionalAmount = useSelector(state => state.auth.additionalAmount);
 
     const serviceList = additionalAmountResponse?.description

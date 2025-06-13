@@ -40,19 +40,18 @@ const IDVerificationScreen = ({ navigation, route }) => {
       return false;
     }
   };
-
   const handlePickImage = async (type) => {
     const hasPermission = await requestCameraPermission();
     if (!hasPermission) {
       Alert.alert('Permission Denied', 'Storage or camera permission is required.');
       return;
     }
-
+  
     const options = {
       mediaType: 'photo',
       quality: 0.5,
     };
-
+  
     const callback = (response) => {
       if (response.didCancel) return;
       if (response.errorCode) {
@@ -64,26 +63,76 @@ const IDVerificationScreen = ({ navigation, route }) => {
         else setSelfie(uri);
       }
     };
-
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['Cancel', 'Take Photo', 'Choose from Gallery'],
-          cancelButtonIndex: 0,
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 1) launchCamera(options, callback);
-          else if (buttonIndex === 2) launchImageLibrary(options, callback);
-        }
-      );
+  
+    if (type === 'selfie') {
+      // Selfie should only allow Camera
+      launchCamera(options, callback);
     } else {
-      Alert.alert('Choose Option', '', [
-        { text: 'Camera', onPress: () => launchCamera(options, callback) },
-        { text: 'Gallery', onPress: () => launchImageLibrary(options, callback) },
-        { text: 'Cancel', style: 'cancel' },
-      ]);
+      // For identity & address allow both Camera and Gallery
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: ['Cancel', 'Take Photo', 'Choose from Gallery'],
+            cancelButtonIndex: 0,
+          },
+          (buttonIndex) => {
+            if (buttonIndex === 1) launchCamera(options, callback);
+            else if (buttonIndex === 2) launchImageLibrary(options, callback);
+          }
+        );
+      } else {
+        Alert.alert('Choose Option', '', [
+          { text: 'Camera', onPress: () => launchCamera(options, callback) },
+          { text: 'Gallery', onPress: () => launchImageLibrary(options, callback) },
+          { text: 'Cancel', style: 'cancel' },
+        ]);
+      }
     }
   };
+  
+  // const handlePickImage = async (type) => {
+  //   const hasPermission = await requestCameraPermission();
+  //   if (!hasPermission) {
+  //     Alert.alert('Permission Denied', 'Storage or camera permission is required.');
+  //     return;
+  //   }
+
+  //   const options = {
+  //     mediaType: 'photo',
+  //     quality: 0.5,
+  //   };
+
+  //   const callback = (response) => {
+  //     if (response.didCancel) return;
+  //     if (response.errorCode) {
+  //       Alert.alert('Error', response.errorMessage);
+  //     } else if (response.assets?.length > 0) {
+  //       const uri = response.assets[0].uri;
+  //       if (type === 'identity') setIdentityImage(uri);
+  //       else if (type === 'address') setAddressImage(uri);
+  //       else setSelfie(uri);
+  //     }
+  //   };
+
+  //   if (Platform.OS === 'ios') {
+  //     ActionSheetIOS.showActionSheetWithOptions(
+  //       {
+  //         options: ['Cancel', 'Take Photo', 'Choose from Gallery'],
+  //         cancelButtonIndex: 0,
+  //       },
+  //       (buttonIndex) => {
+  //         if (buttonIndex === 1) launchCamera(options, callback);
+  //         else if (buttonIndex === 2) launchImageLibrary(options, callback);
+  //       }
+  //     );
+  //   } else {
+  //     Alert.alert('Choose Option', '', [
+  //       { text: 'Camera', onPress: () => launchCamera(options, callback) },
+  //       { text: 'Gallery', onPress: () => launchImageLibrary(options, callback) },
+  //       { text: 'Cancel', style: 'cancel' },
+  //     ]);
+  //   }
+  // };
 
   const handleNext = () => {
     if (!identityProof.trim()) {
@@ -94,10 +143,10 @@ const IDVerificationScreen = ({ navigation, route }) => {
       Alert.alert('Error', 'Please enter Valid Adhar number 12 digit');
       return;
     }
-    if (!addressProof.trim()) {
-      Alert.alert('Error', 'Please enter Address Proof');
-      return;
-    }
+    // if (!addressProof.trim()) {
+    //   Alert.alert('Error', 'Please enter Address Proof');
+    //   return;
+    // }
     if (!identityImage || !addressImage || !selfie) {
       Alert.alert('Error', 'Please upload all required documents.');
       return;
@@ -105,7 +154,7 @@ const IDVerificationScreen = ({ navigation, route }) => {
 
     const idData = {
       identityProof,
-      addressProof,
+      // addressProof,
       identityImage,
       addressImage,
       selfie,
@@ -126,6 +175,7 @@ const IDVerificationScreen = ({ navigation, route }) => {
         value={identityProof}
         onChangeText={setIdentityProof}
         keyboardType="numeric" 
+        maxLength={12}
       />
       <Text style={styles.label}>Upload Identity Proof</Text>
       <TouchableOpacity onPress={() => handlePickImage('identity')} style={styles.uploadBox}>
@@ -135,12 +185,12 @@ const IDVerificationScreen = ({ navigation, route }) => {
           <Text style={styles.uploadText}>Tap to Upload</Text>
         )}
       </TouchableOpacity>
-      <TextInputBox
+      {/* <TextInputBox
         placeholder="Address Proof"
         value={addressProof}
         onChangeText={setAddressProof}
         
-      />
+      /> */}
 
 
 

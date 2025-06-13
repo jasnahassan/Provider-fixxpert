@@ -13,7 +13,10 @@ import {
   Platform,
   ScrollView,
   Alert,
-  CheckBox
+  CheckBox,
+ Keyboard,
+ TouchableWithoutFeedback,
+ ActivityIndicator
 } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { saveAuthStatus, saveFirstTimeStatus } from '../../utils/AsyncStorageHelper';
@@ -32,6 +35,7 @@ const LoginScreen = ({ navigation }) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false)
+  const [loading, setLoading] = useState(false);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -122,23 +126,29 @@ const signInWithGoogle = async () => {
     }
 
     try {
+      setLoading(true)
       const response = await dispatch(loginUser({email:username, password })).unwrap();
       if (response.token) {
         await saveAuthStatus(true);
         await saveFirstTimeStatus(true);
+        setLoading(false)
         navigation.replace('Main');
       } else {
+        setLoading(false)
         Alert.alert("Login Failed", response.message || "Invalid credentials");
       }
     } catch (error) {
+      setLoading(false)
       Alert.alert("Login Failed", error);
     }
   };
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : null}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
     >
       <ScrollView contentContainerStyle={styles.scrollView} keyboardShouldPersistTaps="handled">
         {/* <Image source={require('../../assets/profile_placeholder.png')} style={styles.profileImage} /> */}
@@ -156,6 +166,7 @@ const signInWithGoogle = async () => {
           iconSource={isPasswordVisible ? require('../../assets/eyeopen.png') : require('../../assets/hidden.png')}
           onIconPress={() => setIsPasswordVisible(!isPasswordVisible)}
           outlined
+          maxLength={15}
         />
   <TouchableOpacity style={{marginBottom:20,alignSelf:'flex-start'}} onPress={() => navigation.navigate('ForgotPassword')}>
           <Text style={styles.forgotPassword}>Forgot your password?</Text>
@@ -184,11 +195,15 @@ const signInWithGoogle = async () => {
           <Image source={require('../../assets/google.png')} style={styles.googleIcon} />
           <Text style={styles.googleText}>Continue with Google</Text>
         </TouchableOpacity>
-      
-       
         
         </ScrollView>
+      {loading ? (
+        <View style={styles.loaderOverlay}>
+          <ActivityIndicator size="large" color="#093759" />
+        </View>
+      ) : null}
     </KeyboardAvoidingView>
+  </TouchableWithoutFeedback>
   );
 };
 
@@ -214,6 +229,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
 
 },
+loaderOverlay: {
+  position: 'absolute',
+  top: 0, left: 0, right: 0, bottom: 0,
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: 'rgba(0,0,0,0.3)',
+  zIndex: 9999
+}
 });
 
 export default LoginScreen;

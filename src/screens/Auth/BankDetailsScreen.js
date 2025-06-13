@@ -1,5 +1,5 @@
 import React, { useState ,useEffect} from 'react';
-import { ScrollView, StyleSheet, Text, View, Alert } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, Alert ,ActivityIndicator} from 'react-native';
 import TextInputBox from '../../components/TextInputBox';
 import GradientButton from '../../components/GradientButton';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,6 +10,7 @@ const BankDetailsScreen = ({ navigation, route }) => {
   const [accountHolderName, setAccountHolderName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [confirmAccountNumber, setConfirmAccountNumber] = useState('');
+  const [loading, setLoading] = useState(false);
   const [ifsc, setIfsc] = useState('');
   const dispatch = useDispatch();
 
@@ -58,7 +59,7 @@ const BankDetailsScreen = ({ navigation, route }) => {
       const bankData = { bankName, accountHolderName, accountNumber, ifsc };
       const allUserData = { ...route.params, bankDetails: bankData };
       const { idVerification } = allUserData;
-
+      setLoading(true)
       // 1. Upload selfie (provider_id: 0)
       const selfieFile = {
         uri: idVerification?.selfie,
@@ -128,6 +129,14 @@ const BankDetailsScreen = ({ navigation, route }) => {
         });
       }
 
+      if (idVerification?.selfie) {
+        docFiles.push({
+          uri: idVerification.selfie,
+          type: 'image/jpeg',
+          name: 'address_proof.jpg',
+        });
+      }
+
       if (idVerification?.addressImage) {
         docFiles.push({
           uri: idVerification.addressImage,
@@ -177,10 +186,11 @@ const BankDetailsScreen = ({ navigation, route }) => {
       // if (!createBankDetails.fulfilled.match(bankResult)) {
       //   throw new Error('Bank details creation failed');
       // }
-
+      setLoading(false)
       Alert.alert('Success', 'your registration request has been submitted. please wait while we review your account');
       navigation.navigate('Login');
     } catch (error) {
+      setLoading(false)
       console.error('❌ Error:', error);
       Alert.alert('Registration Error', error);
 
@@ -266,11 +276,14 @@ const BankDetailsScreen = ({ navigation, route }) => {
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Bank Details</Text>
       <TextInputBox placeholder="Bank Name" value={bankName} onChangeText={setBankName} />
-      <TextInputBox placeholder="Account Holder Name" value={accountHolderName} onChangeText={setAccountHolderName} />
-      <TextInputBox placeholder="Account Number" value={accountNumber} onChangeText={setAccountNumber} keyboardType="numeric" />
+      <TextInputBox   maxLength={18} placeholder="Account Holder Name" value={accountHolderName} onChangeText={setAccountHolderName} />
+      <TextInputBox    maxLength={18} placeholder="Account Number" value={accountNumber} onChangeText={setAccountNumber} keyboardType="numeric" />
       <TextInputBox placeholder="Confirm Account Number" value={confirmAccountNumber} onChangeText={setConfirmAccountNumber} keyboardType="numeric" />
-      <TextInputBox placeholder="IFSC Code" value={ifsc} onChangeText={setIfsc} autoCapitalize="characters" />
+      <TextInputBox    maxLength={11} placeholder="IFSC Code" value={ifsc} onChangeText={setIfsc} autoCapitalize="characters" />
       <GradientButton width={'100%'} title="Submit" onPress={handleSubmit} />
+      {loading ? ( <View style={styles.loaderOverlay}>
+      <ActivityIndicator size="large" color="#093759" />
+    </View>) :''}
     </ScrollView>
   );
 };
@@ -278,6 +291,14 @@ const BankDetailsScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: { padding: 20 },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 20, color: '#062B67' },
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    zIndex: 9999
+  }
 });
 
 export default BankDetailsScreen;

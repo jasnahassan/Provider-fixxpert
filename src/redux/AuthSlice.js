@@ -784,7 +784,7 @@ export const fetchNotifications = createAsyncThunk(
       const token = await AsyncStorage.getItem('authToken');
       console.log('Fetching notifications with token:', token);
 
-      const response = await fetch(`${BASE_URL}fcm/fetch_all`, {
+      const response = await fetch(`${BASE_URL}fcm/fetch_all?filter_type=${'Technician'}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -1566,10 +1566,42 @@ export const fetchAdditionalAmount = createAsyncThunk(
   }
 );
 export const resetDocumentUpload = createAction('auth/resetDocumentUpload');
+export const fetchAds = createAsyncThunk(
+  'ads/fetchAds',
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const response = await fetch(`${BASE_URL}ads/fetch`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      const data = await response.json();
+      console.log(data, 'Ads Response');
+
+      if (data.error) {
+        return [];  // if API returns error, return empty list
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch ads');
+      }
+
+      return data;  // assuming it's returning an array of ads
+    } catch (error) {
+      return rejectWithValue(error.message || 'Something went wrong!');
+    }
+  }
+)
 
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
+    ads: [],
     user: null,
     isAuthenticated: false,
     loading: false,
@@ -1585,6 +1617,11 @@ const authSlice = createSlice({
     uploading: false,
     uploadResponse: null,
     uploadError: null,
+    loading: false,
+    loadingCities: false,
+    loadingBookings: false,
+    loadingNotifications: false,
+    uploading: false,
   },
   reducers: {
     logout: (state) => {
@@ -1885,6 +1922,17 @@ const authSlice = createSlice({
       .addCase(uploadProviderDocumentsdata.rejected, (state, action) => {
         state.uploading = false;
         state.uploadError = action.payload;
+      })
+      .addCase(fetchAds.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchAds.fulfilled, (state, action) => {
+        state.loading = false;
+        state.ads = action.payload || [];  // store ads
+      })
+      .addCase(fetchAds.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
   },
 });

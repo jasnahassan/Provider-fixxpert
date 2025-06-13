@@ -14,6 +14,7 @@ const { width } = Dimensions.get('window');
 const TrackingScreen = ({ navigation, route }) => {
   const dispatch = useDispatch();
   const { bookingItem } = route.params;
+  const [loadingindicator, setLoadingindicator] = useState(false);
   const mapRef = useRef(null);
 
   const [providerLocation, setProviderLocation] = useState(null);
@@ -266,6 +267,14 @@ const styles = StyleSheet.create({
   },
   backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
   banner: { width: "100%", height: 100, borderRadius: 10, marginBottom: 20 ,marginTop:12},
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    zIndex: 9999
+  }
 });
 
 export default TrackingScreen;

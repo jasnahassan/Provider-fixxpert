@@ -172,6 +172,7 @@ const RegisterScreen = ({ navigation }) => {
                                 height={40}
                                 style={{ flex: 3 }}
                                 keyboardType="numeric" 
+                                maxLength={10}
                                 // keyboardType="phone-pad"
                     />
 
@@ -182,6 +183,7 @@ const RegisterScreen = ({ navigation }) => {
                         placeholder="Password"
                         secureTextEntry={!isPasswordVisible}
                         value={password}
+                        maxLength={15}
                         onChangeText={setPassword}
                         style={{ flex: 1 }}
                         icon={true}
@@ -199,6 +201,7 @@ const RegisterScreen = ({ navigation }) => {
                         placeholder="Confirm Password"
                         secureTextEntry={!showConfirmPassword}
                         value={confirmPassword}
+                        maxLength={15}
                         onChangeText={setConfirmPassword}
                         style={{ flex: 1 }}
                         icon={true}

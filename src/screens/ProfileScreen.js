@@ -12,7 +12,8 @@ import {
   PermissionsAndroid,
   Keyboard,
   Modal,
-  Linking
+  Linking,
+  ActivityIndicator
 } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -37,6 +38,7 @@ const ProfileScreen = ({ navigation }) => {
   const [fetchedAddresses, setFetchedAddresses] = useState([]);
   const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [loadingindicator, setLoadingindicator] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -68,7 +70,7 @@ const ProfileScreen = ({ navigation }) => {
           type: 'image/jpeg',
           name: 'profile.jpg',
         };
-
+       
         const result = await dispatch(
           uploadProviderDocuments({
             provider_id: 0,
@@ -86,7 +88,7 @@ const ProfileScreen = ({ navigation }) => {
           throw new Error('Failed to retrieve uploaded profile image path');
         }
       }
-
+      setLoadingindicator(true)
       // Now update the profile
       await dispatch(updateUserProfile({
         user_id: userdetails?.service_provider_id,
@@ -98,10 +100,11 @@ const ProfileScreen = ({ navigation }) => {
       dispatch(fetchUserProfile(userdetails?.service_provider_id))
         .unwrap()
         .then((profileData) => {
+          setLoadingindicator(false)
           console.log('User profile loaded:', profileData);
           // set state if needed
           setAddress(
-            [profileData?.service_provider_address1, profileData?.service_provider_address2]
+            [profileData?.service_provider_address1]
               .filter(Boolean)
               .join(', ')
           )
@@ -210,9 +213,11 @@ const ProfileScreen = ({ navigation }) => {
       console.log(user?.service_provider_id, 'userdata')
       setUserdetails(user)
       if (user) {
+        setLoadingindicator(true)
         dispatch(fetchUserProfile(user?.service_provider_id))
           .unwrap()
           .then((profileData) => {
+            setLoadingindicator(false)
             console.log('User profile loaded:', profileData);
             // set state if needed
 
@@ -220,6 +225,11 @@ const ProfileScreen = ({ navigation }) => {
             setEmail(profileData?.service_provider_email);
             setContactNumber(profileData?.service_provider_mobile)
             setProfilePic(profileData?.service_provider_profile_image_file_id)
+            setAddress(
+              [profileData?.service_provider_address1]
+                .filter(Boolean)
+                .join(', ')
+            )
           })
           .catch((err) => {
             console.log('Failed to fetch profile:', err);
@@ -667,6 +677,9 @@ const ProfileScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+      {loadingindicator ? ( <View style={styles.loaderOverlay}>
+      <ActivityIndicator size="large" color="#093759" />
+    </View>) :''} 
 
     </KeyboardAvoidingView>
   );
@@ -863,6 +876,14 @@ const styles = StyleSheet.create({
   },
   normalText: {
     color: 'black'
+  },
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    zIndex: 9999
   }
 });
 

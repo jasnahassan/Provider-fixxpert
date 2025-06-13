@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image ,ActivityIndicator} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBookingByFilter } from '../redux/AuthSlice'; // Adjust path if needed
@@ -10,6 +10,7 @@ import moment from "moment";
 const MyBookings = ({ navigation }) => {
   const dispatch = useDispatch();
   const [selectedStatus, setSelectedStatus] = useState('Latest');
+  const [loadingindicator, setLoadingindicator] = useState(false);
 
   const { bookings, loading, error } = useSelector((state) =>state.auth); 
 
@@ -98,7 +99,9 @@ const MyBookings = ({ navigation }) => {
           </TouchableOpacity>
         )}
       />
-
+    {loading && ( <View style={styles.loaderOverlay}>
+      <ActivityIndicator size="large" color="#093759" />
+    </View>) } 
 {!loading && bookings.length === 0 && (
   <Text style={{ textAlign: 'center', marginTop: 20 ,color:'black'}}>No bookings found.</Text>
 )}
@@ -189,4 +192,12 @@ const styles = StyleSheet.create({
     color: 'black'
   },
   backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    zIndex: 9999
+  }
 });

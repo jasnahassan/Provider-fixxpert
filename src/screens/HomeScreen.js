@@ -15,7 +15,8 @@ import {
   Switch, 
   ImageBackground,
   Platform,
-  AppState
+  AppState,
+  ActivityIndicator
 } from "react-native";
 import Carousel from "react-native-snap-carousel";
 import { useDispatch, useSelector } from "react-redux";
@@ -65,6 +66,7 @@ const HomeScreen = ({ navigation }) => {
   const [reminderVisible, setReminderVisible] = useState(false);
 const [hoursLeft, setHoursLeft] = useState(null);
 const [jobType, setJobType] = useState('');
+
   
 
   const stats = [
@@ -512,6 +514,12 @@ useEffect(() => {
   jobType={jobType}
 />
       </ScrollView>
+
+      {loading ? <ActivityIndicator size="large" color="#0000ff" /> : (
+  <ScrollView contentContainerStyle={styles.scrollView}>
+    {/* your content */}
+  </ScrollView>
+)}
     </SafeAreaView>
   );
 };

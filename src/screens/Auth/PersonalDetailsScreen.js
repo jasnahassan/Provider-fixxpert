@@ -1,14 +1,17 @@
 // PersonalDetailsScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView ,Alert} from 'react-native';
+import { View, Text, StyleSheet, ScrollView ,Alert, TouchableOpacity} from 'react-native';
 import TextInputBox from '../../components/TextInputBox';
 import GradientButton from '../../components/GradientButton';
 import CityPickerBox from "../../components/CityPickerBox";
 import { useDispatch, useSelector } from 'react-redux';
 import {  fetchCities } from '../../redux/AuthSlice';
+import DatePicker from 'react-native-date-picker';
+import moment from 'moment';
 
 const PersonalDetailsScreen = ({ navigation, route }) => {
   const [dob, setDob] = useState('');
+  const [openDatePicker, setOpenDatePicker] = useState(false);
   const [gender, setGender] = useState('');
   const [nationality, setNationality] = useState('');
   const [parentName, setParentName] = useState('');
@@ -54,8 +57,41 @@ const handleNext = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Personal Details</Text>
-      <TextInputBox placeholder="Date of Birth (DD/MM/YYYY)" value={dob} onChangeText={setDob} />
-      <TextInputBox placeholder="Gender" value={gender} onChangeText={setGender} />
+      {/* <TextInputBox placeholder="Date of Birth (DD/MM/YYYY)" editable={false} value={dob} onChangeText={setDob} /> */}
+      <TouchableOpacity  onPress={() => setOpenDatePicker(true)} >
+      <TextInputBox 
+  placeholder="Date of Birth (DD/MM/YYYY)" 
+  value={dob} 
+  editable={false} 
+  onChangeText={setDob}
+  // onPress={() => setOpenDatePicker(true)} 
+/>
+</TouchableOpacity>
+      <DatePicker
+  modal
+  open={openDatePicker}
+  date={dob ? moment(dob, 'DD/MM/YYYY').toDate() : new Date()}
+  mode="date"
+  maximumDate={new Date()}
+  onConfirm={(selectedDate) => {
+    setOpenDatePicker(false);
+    const formattedDate = moment(selectedDate).format('DD/MM/YYYY');
+    setDob(formattedDate);
+  }}
+  onCancel={() => setOpenDatePicker(false)}
+/>
+      {/* <TextInputBox placeholder="Gender" value={gender} onChangeText={setGender} /> */}
+      <CityPickerBox
+  placeholder=" Select Gender"
+  label={"Select Gender"}
+  selectedValue={gender}
+  onValueChange={setGender}
+  items={[
+    { city_id: 'Male', city_name: 'Male' },
+    { city_id: 'Female', city_name: 'Female' },
+    { city_id: 'Others', city_name: 'Others' }
+  ]}
+/>
       <TextInputBox placeholder="Nationality" value={nationality} onChangeText={setNationality} />
       <TextInputBox placeholder="Father/Mother/Spouse Name" value={parentName} onChangeText={setParentName} />
       <TextInputBox placeholder="Full Address" value={address} onChangeText={setAddress} />
@@ -67,7 +103,7 @@ const handleNext = () => {
             items={cities}
           />
       <TextInputBox placeholder="State" value={state} onChangeText={setstate} />
-      <TextInputBox placeholder="Pincode" value={pincode} keyboardType="numeric" onChangeText={setPincode} />
+      <TextInputBox placeholder="Pincode"  maxLength={6}  value={pincode} keyboardType="numeric" onChangeText={setPincode} />
       <GradientButton title="Next" width={'100%'} onPress={handleNext} />
     </ScrollView>
   );

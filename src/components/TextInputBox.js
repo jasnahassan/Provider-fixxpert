@@ -12,7 +12,8 @@ const TextInputBox = ({
   error = false,
   keyboardType = "default",
   editable = true,
-  multiline = false // ✅ added multiline support
+  multiline = false ,
+  maxLength
 }) => {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -43,6 +44,7 @@ const TextInputBox = ({
         editable={editable}
         multiline={multiline} // ✅ passed multiline prop
         numberOfLines={multiline ? 4 : 1}
+        {...(maxLength && { maxLength })}
       />
       {icon && (
         <TouchableOpacity onPress={onIconPress} style={styles.iconContainer}>

@@ -18,6 +18,7 @@ const { width } = Dimensions.get('window');
 
 const RequestDetailScreen = ({ navigation,route }) => {
   const { serviceItem } = route.params;
+  const [loadingindicator, setLoadingindicator] = useState(false);
   const dispatch = useDispatch();
   const dummyBooking = {
     booking_id: '524545',
@@ -351,5 +352,13 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
   },
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    zIndex: 9999
+  }
 });
 

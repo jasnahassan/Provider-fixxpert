@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert,TouchableWithoutFeedback,Keyboard } from 'react-native';
+import React, { useState ,useEffect} from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Alert,TouchableWithoutFeedback,Keyboard,ActivityIndicator } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import TextInputBox from '../components/TextInputBox';
 import GradientButton from '../components/GradientButton';
-import { createAdditionalAmount ,uploadProviderDocuments,updateBookingstatus} from '../redux/AuthSlice';
-import { useDispatch } from 'react-redux';
+import { createAdditionalAmount ,uploadProviderDocuments,updateBookingstatus,fetchAds} from '../redux/AuthSlice';
+import { useDispatch ,useSelector} from 'react-redux';
 
 const EstimationScreen = ({ navigation,route }) => {
   const { bookingItem } = route.params;
@@ -14,7 +14,13 @@ const EstimationScreen = ({ navigation,route }) => {
   const [description, setDescription] = useState('');
   const [imageUri, setImageUri] = useState(null); // ✅ new state
   const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+  const { ads, error } = useSelector(state => state.auth); 
 
+
+  useEffect(() => {
+    dispatch(fetchAds());
+  }, []);
 
   const handleSave = async () => {
     if ( !amount  || !minutes || !description) {
@@ -66,10 +72,12 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
     dispatch(createAdditionalAmount(payload))
     .unwrap()
     .then(res => {
+      setLoading(true); 
       // First update booking status
       dispatch(updateBookingstatus({ bookingId: bookingItem?.booking_id, booking_status: 10 }))
         .unwrap()
         .then(() => {
+          setLoading(false); 
           // After status update, show alert and navigate
           Alert.alert('Success', 'Additional amount submitted!');
           navigation.navigate('ServiceStatusScreen', {
@@ -115,6 +123,7 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
   };
 
   return (
+    <>
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <View style={styles.container}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -166,10 +175,18 @@ const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
 
       <GradientButton title="Save" onPress={handleSave} width={'100%'} />
 
-      <Image source={require('../assets/Image.png')} resizeMethod='resize' resizeMode="stretch" style={styles.banner} />
+      {/* <Image source={require('../assets/Image.png')} resizeMethod='resize' resizeMode="stretch" style={styles.banner} /> */}
+      <Image source={{uri:ads[0]?.image}} resizeMethod='resize' resizeMode="stretch" style={styles.banner} />
 
     </View>
+    
+
+    
   </TouchableWithoutFeedback>
+  {loading ? ( <View style={styles.loaderOverlay}>
+      <ActivityIndicator size="large" color="#093759" />
+    </View>) :''}
+  </>
   );
 };
 
@@ -208,6 +225,14 @@ const styles = StyleSheet.create({
   },
   backButton: { marginBottom: 20, flexDirection: 'row', alignItems: 'center' },
   banner: { width: "100%", height: 100, borderRadius: 10, marginBottom: 20 ,marginTop:12},
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    zIndex: 9999
+  }
 
 
 });

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect,useState } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import GradientButton from '../components/GradientButton';
 import StarView from 'react-native-star-view';
@@ -8,6 +8,7 @@ import { fetchServiceTypeById } from '../redux/AuthSlice';
 const ServiceDetailScreen = ({ navigation ,route}) => {
     const rating = 4.8;
     const { serviceId } = route.params;
+    const [loadingindicator, setLoadingindicator] = useState(false);
     const dispatch = useDispatch();
     const { serviceDetails, loading, error } = useSelector((state) => state.auth);
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect,useState} from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 const NotificationScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const [loadingindicator, setLoadingindicator] = useState(false);
 
   const { notifications, loadingNotifications } = useSelector((state) => state.auth);
 
@@ -159,6 +160,14 @@ const styles = StyleSheet.create({
   },
   title:{
       fontSize:20
+  },
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    zIndex: 9999
   }
 });
 
