@@ -33,6 +33,7 @@ const ProfileScreen = ({ navigation }) => {
   const [contactNumber, setContactNumber] = useState('');
   const [country, setCountry] = useState('');
   const [address, setAddress] = useState('');
+  const [service, setservice] = useState('');
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [userdetails, setUserdetails] = useState(false);
   const [fetchedAddresses, setFetchedAddresses] = useState([]);
@@ -108,7 +109,7 @@ const ProfileScreen = ({ navigation }) => {
               .filter(Boolean)
               .join(', ')
           )
-        
+          setservice(profileData?.service_type_name)
           setFullName(profileData?.service_provider_name); // example usage
           setEmail(profileData?.service_provider_email);
           setContactNumber(profileData?.service_provider_mobile)
@@ -220,7 +221,7 @@ const ProfileScreen = ({ navigation }) => {
             setLoadingindicator(false)
             console.log('User profile loaded:', profileData);
             // set state if needed
-
+            setservice(profileData?.service_type_name)
             setFullName(profileData?.service_provider_name); // example usage
             setEmail(profileData?.service_provider_email);
             setContactNumber(profileData?.service_provider_mobile)
@@ -231,6 +232,7 @@ const ProfileScreen = ({ navigation }) => {
                 .join(', ')
             )
           })
+       
           .catch((err) => {
             console.log('Failed to fetch profile:', err);
           });
@@ -512,7 +514,7 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.title}>Edit Profile</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setLogoutModalVisible(true)} style={{ marginRight: 16, alignSelf: 'flex-end' }}>
+        <TouchableOpacity onPress={() => setLogoutModalVisible(true)} style={{ marginRight: 16, alignSelf: 'flex-end',marginTop:-20 }}>
           <Text style={{ color: '#093758', fontWeight: '800', fontSize: 20 }}>Logout</Text>
         </TouchableOpacity>
 
@@ -543,6 +545,7 @@ const ProfileScreen = ({ navigation }) => {
         {contactNumber ? <TextInputBox placeholder="Contact Number" editable={false} value={contactNumber} onChangeText={setContactNumber} /> : ''}
        
           <TextInputBox placeholder="Address" value={address} editable={false} onChangeText={setAddress} /> 
+          <TextInputBox placeholder="My service" value={service} editable={false} onChangeText={setservice} /> 
      
         {/* <TextInputBox placeholder="Select Country" value={country} onChangeText={setCountry} /> */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -573,7 +576,7 @@ const ProfileScreen = ({ navigation }) => {
           {/* <TouchableOpacity style={{ alignSelf: 'center', marginBottom: 20 }} onPress={handlePrivacyPolicy}>
             <Text style={styles.privacyPolicy}>Privacy Policy and Terms & Conditions</Text>
           </TouchableOpacity> */}
-          <View style={{ alignItems: 'center', marginBottom: 20, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
+          <View style={{ alignItems: 'center', marginBottom: 0, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', }}>
             {/* <Text style={styles.normalText}>Read our </Text> */}
 
             <Text style={styles.privacyPolicy} onPress={openPrivacyPolicy}>
@@ -590,7 +593,7 @@ const ProfileScreen = ({ navigation }) => {
           <GradientButton
             title="Save"
             onPress={handleSave}
-            margintop={20}
+            margintop={10}
             width={'100%'}
 
           />
@@ -745,7 +748,7 @@ const styles = StyleSheet.create({
   },
   bottomContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 2,
     left: 16,
     right: 16,
     // backgroundColor:'green'
@@ -801,6 +804,7 @@ const styles = StyleSheet.create({
     color: 'gray',
     textDecorationLine: 'underline',
     fontSize: 14,
+  
   },
   modalContainer: {
     flex: 1,

@@ -1597,6 +1597,37 @@ export const fetchAds = createAsyncThunk(
     }
   }
 )
+export const fetchBookingById = createAsyncThunk(
+  'booking/fetchBookingById',
+  async (booking_id, { rejectWithValue }) => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      console.log('Fetching booking with token booking details:', token,booking_id,booking_id);
+
+      const response = await fetch(`${BASE_URL}booking/fetch_booking/${booking_id}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      const data = await response.json();
+      console.log('Fetched Booking:', data);
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to fetch booking');
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in fetchBookingById:', error.message);
+      return rejectWithValue(error.message || 'Something went wrong');
+    }
+  }
+);
+
 
 const authSlice = createSlice({
   name: 'auth',
@@ -1622,6 +1653,7 @@ const authSlice = createSlice({
     loadingBookings: false,
     loadingNotifications: false,
     uploading: false,
+    loadingBooking2:false
   },
   reducers: {
     logout: (state) => {
@@ -1933,6 +1965,18 @@ const authSlice = createSlice({
       .addCase(fetchAds.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      .addCase(fetchBookingById.pending, (state) => {
+        state.loadingBooking2 = true;
+      })
+      .addCase(fetchBookingById.fulfilled, (state, action) => {
+        state.singleBooking = action.payload;  // or any name you keep
+        state.loadingBooking2 = false;
+      })
+      .addCase(fetchBookingById.rejected, (state, action) => {
+        state.loadingBooking2 = false;
+        console.log('Booking fetch error:', action.payload);
       })
   },
 });

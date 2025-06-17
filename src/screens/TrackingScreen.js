@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState,useCallback } from 'react';
 import {
   View, Text, StyleSheet, Image, Dimensions,
   TouchableOpacity, PermissionsAndroid, Platform
@@ -6,8 +6,9 @@ import {
 import GradientButton from '../components/GradientButton';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
-import { updateBookingstatus } from '../redux/AuthSlice';
+import { updateBookingstatus,fetchBookingById } from '../redux/AuthSlice';
 import { useDispatch, useSelector } from "react-redux";
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -19,11 +20,29 @@ const TrackingScreen = ({ navigation, route }) => {
 
   const [providerLocation, setProviderLocation] = useState(null);
   const [watchId, setWatchId] = useState(null);
+  const [bookdetails, setbookdetails] = useState('');
 
   const destinationLocation = {
     latitude: parseFloat(bookingItem?.address_details?.lat || 0),
     longitude: parseFloat(bookingItem?.address_details?.long || 0),
   };
+
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        try {
+          const response = await dispatch(fetchBookingById(bookingItem?.booking_id)).unwrap();
+          console.log('Booking response:', response);
+          setbookdetails(response)
+        } catch (error) {
+          console.error('Failed to fetch booking:', error);
+        }
+      };
+
+      fetchData();
+    }, [dispatch, bookingItem?.booking_id])
+  );
 
   const requestLocationPermission = async () => {
     if (Platform.OS === 'android') {
@@ -115,7 +134,7 @@ const TrackingScreen = ({ navigation, route }) => {
     //     alert('Please select or enter a reason');
     //     return;
     // }
-
+    {bookdetails?.booking_status_id < 8 ? (
     dispatch(updateBookingstatus({ bookingId:bookingItem?.booking_id,booking_status:8 }))
         .unwrap()
         .then(() => {
@@ -126,7 +145,9 @@ const TrackingScreen = ({ navigation, route }) => {
         .catch((err) => {
             console.log('Cancel error:', err);
             alert('Failed to cancel booking');
-        });
+        })) :(
+          navigation.navigate('EstimationScreen',{ bookingItem:bookingItem})
+        )}
 };
 
   useEffect(() => {
@@ -195,7 +216,7 @@ const TrackingScreen = ({ navigation, route }) => {
 
         <View style={styles.cardRow}>
           <Image source={require('../assets/Locationred.png')} style={styles.icon} />
-          <Text style={styles.cardText}>{bookingItem?.address_details?.address_line1},{bookingItem?.address_details?.address_line2}</Text>
+          <Text style={styles.cardText}>{bookingItem?.address_details?.address_line1}</Text>
         </View>
 
         <View style={styles.cardRow}>
@@ -208,7 +229,7 @@ const TrackingScreen = ({ navigation, route }) => {
           <Text style={styles.cardText}>{bookingItem?.user?.name}</Text>
         </View>
       </View>
-      <GradientButton title="Arrived" onPress={() => handleArrivePress()} />
+      <GradientButton title={bookdetails?.booking_status_id <8 ?'Arrived' :'Next'} onPress={() => handleArrivePress()} />
       <Image source={require('../assets/Image.png')} resizeMethod='resize' resizeMode="stretch" style={styles.banner} />
     </View>
   );

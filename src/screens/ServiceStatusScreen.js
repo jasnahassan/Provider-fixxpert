@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
+import React, { useState, useRef, useEffect ,useCallback} from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, Alert ,BackHandler} from 'react-native';
 import GradientButton from '../components/GradientButton';
 import RazorpayCheckout from 'react-native-razorpay';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -41,6 +41,19 @@ const ServiceStatusScreen = ({ navigation, route }) => {
         const secs = String(s % 60).padStart(2, '0');
         return { hrs, mins, secs };
     };
+
+    useFocusEffect(
+        useCallback(() => {
+          const onBackPress = () => {
+            navigation.navigate('Main');
+            return true; // prevent default behavior
+          };
+      
+          BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      
+          return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        }, [navigation])
+      );
 
     useFocusEffect(
         React.useCallback(() => {
@@ -208,7 +221,7 @@ const ServiceStatusScreen = ({ navigation, route }) => {
 
     return (
         <View style={styles.container}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <TouchableOpacity onPress={() => navigation.navigate('Main')} style={styles.backButton}>
                 <Image source={require('../assets/back-arrow.png')} style={styles.backIcon} />
                 <Text style={styles.title}>Service status</Text>
             </TouchableOpacity>

@@ -16,18 +16,20 @@ import {
   ImageBackground,
   Platform,
   AppState,
-  ActivityIndicator
+  ActivityIndicator,
+  RefreshControl
 } from "react-native";
 import Carousel from "react-native-snap-carousel";
 import { useDispatch, useSelector } from "react-redux";
 import messaging from '@react-native-firebase/messaging';
-import { updateFcmToken, fetchAllServiceTypes, fetchBanners ,sendServiceProviderLocation,fetchProviderDashboard,fetchUnassignedBookings,acceptBooking,fetchBookingByFilter,deActivateprovider,Activateprovider} from "../redux/AuthSlice";
+import { updateFcmToken, fetchAllServiceTypes, fetchBanners ,sendServiceProviderLocation,fetchProviderDashboard,fetchUnassignedBookings,acceptBooking,fetchBookingByFilter,deActivateprovider,Activateprovider,fetchAds} from "../redux/AuthSlice";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { startBackgroundJob, stopBackgroundJob } from '../utils/backgroundLocationService';
 import ReminderModal from "../components/ReminderModal";
 import moment from 'moment'; 
+import { stopNotificationSound } from '../utils/SoundManager';
 
 
 import Geolocation from 'react-native-geolocation-service';
@@ -66,7 +68,15 @@ const HomeScreen = ({ navigation }) => {
   const [reminderVisible, setReminderVisible] = useState(false);
 const [hoursLeft, setHoursLeft] = useState(null);
 const [jobType, setJobType] = useState('');
+const [locationstop, setlocationstop] = useState(false);
+const { ads } = useSelector(state => state.auth); 
+const locationStopRef = useRef(locationstop);
+const [refreshing, setRefreshing] = useState(false);
 
+
+useEffect(() => {
+  locationStopRef.current = locationstop;
+}, [locationstop]);
   
 
   const stats = [
@@ -80,6 +90,27 @@ const [jobType, setJobType] = useState('');
     { title: "Plumbing", location: "123 Street", time: "04:00 PM" },
     // { title: "Cleaning", location: "456 Avenue", time: "06:00 PM" },
   ];
+
+  const onRefresh = async () => {
+    try {
+      setRefreshing(true);
+      const user = await getUserData();
+      dispatch(fetchProviderDashboard(user?.service_provider_id));
+      dispatch(fetchUnassignedBookings(user?.service_provider_id));
+      dispatch(fetchBookingByFilter({ providerId: user?.service_provider_id, filterType: 'Latest', searchQuery: '' }));
+      console.log("Refresh refresh");
+    } catch (e) {
+      console.error("Refresh error", e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+  
+
+  useEffect(() => {
+    dispatch(fetchAds());
+  }, []);
+
   const showReminderModal = (hours, type) => {
     setHoursLeft(hours);
     setJobType(type);
@@ -100,6 +131,34 @@ const [jobType, setJobType] = useState('');
   //   };
   // }, []);
 
+  // const checkJobReminders = (bookings, showReminderModal) => {
+  //   const now = moment();
+  
+  //   bookings.forEach((booking) => {
+  //     const bookedTimeUTC = booking.booked_date_time;
+  //     if (!bookedTimeUTC) return;
+  
+  //     const jobTimeLocal = moment.utc(bookedTimeUTC).local(); // Convert UTC to local
+  //     const isToday = jobTimeLocal.isSame(now, 'day');
+  //     if (!isToday) return;
+  
+  //     const diffInMinutes = jobTimeLocal.diff(now, 'minutes');
+  //     const serviceName = booking.service_name;
+  //     const bookingId = booking.id || booking.booked_date_time; // Unique job ID
+  
+  //     if (diffInMinutes <= 240 && diffInMinutes > 180 && !remindersShown[`${bookingId}-4h`]) {
+  //       remindersShown[`${bookingId}-4h`] = true;
+  //       showReminderModal(4, serviceName);
+  //     } else if (diffInMinutes <= 120 && diffInMinutes > 60 && !remindersShown[`${bookingId}-2h`]) {
+  //       remindersShown[`${bookingId}-2h`] = true;
+  //       showReminderModal(2, serviceName);
+  //     } else if (diffInMinutes <= 60 && diffInMinutes > 0 && !remindersShown[`${bookingId}-1h`]) {
+  //       remindersShown[`${bookingId}-1h`] = true;
+  //       showReminderModal(1, serviceName);
+  //     }
+  //   });
+  // };
+
   const checkJobReminders = (bookings, showReminderModal) => {
     const now = moment();
   
@@ -115,18 +174,22 @@ const [jobType, setJobType] = useState('');
       const serviceName = booking.service_name;
       const bookingId = booking.id || booking.booked_date_time; // Unique job ID
   
+      // NEW CONDITION: skip any job starting in less than 20 minutes
+      if (diffInMinutes < 20) return;
+  
       if (diffInMinutes <= 240 && diffInMinutes > 180 && !remindersShown[`${bookingId}-4h`]) {
         remindersShown[`${bookingId}-4h`] = true;
         showReminderModal(4, serviceName);
       } else if (diffInMinutes <= 120 && diffInMinutes > 60 && !remindersShown[`${bookingId}-2h`]) {
         remindersShown[`${bookingId}-2h`] = true;
         showReminderModal(2, serviceName);
-      } else if (diffInMinutes <= 60 && diffInMinutes > 0 && !remindersShown[`${bookingId}-1h`]) {
+      } else if (diffInMinutes <= 60 && diffInMinutes > 20 && !remindersShown[`${bookingId}-1h`]) {
         remindersShown[`${bookingId}-1h`] = true;
         showReminderModal(1, serviceName);
       }
     });
   };
+  
 
 useEffect(() => {
   const appStateListener = AppState.addEventListener('change', (nextAppState) => {
@@ -266,8 +329,8 @@ useEffect(() => {
         
         dispatch(sendServiceProviderLocation({
           service_provider_id: user?.service_provider_id,
-          lat: latitude,
-          long: longitude
+          lat: locationStopRef.current ? 1 : latitude,
+          long: locationStopRef.current ? 1 : longitude
         }));
       },
       (error) => {
@@ -359,7 +422,9 @@ useEffect(() => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.scrollView}>
+      <ScrollView  refreshControl={
+    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+  } contentContainerStyle={styles.scrollView}>
         {/* Location Section */}
         <Text style={styles.greetingText}>Hi User</Text>
         {/* Greeting and Toggle */}
@@ -375,10 +440,14 @@ useEffect(() => {
                 setIsActive(value);
                 if (value) {
                   requestLocationPermission()
+                  setlocationstop(false)
+                  console.log(locationstop,'here update location active')
                   // requestNotificationPermission();
                   
                   // dispatch(Activateprovider(providerid));         // Call activate API
                 } else {
+                  setlocationstop(true)
+                  console.log(locationstop,'here update location inactive')
                   // dispatch(deActivateprovider(providerid)); // Call deactivate API
                 }
               }}
@@ -459,9 +528,11 @@ useEffect(() => {
 
               <View style={styles.buttonRow}>
                 <TouchableOpacity onPress={()=>{
+                  stopNotificationSound()
                    dispatch(acceptBooking(item?.booking_id))
                    dispatch(fetchProviderDashboard(providerid));
                    dispatch(fetchUnassignedBookings(providerid));
+                   dispatch(fetchBookingByFilter({ providerId: providerid, filterType: 'Latest', searchQuery: '' }));
                 }
                   
                   } style={styles.acceptBtn}>
@@ -473,6 +544,12 @@ useEffect(() => {
               </View>
             </View>
           )}
+          ListEmptyComponent={
+            <View style={{ padding: 20, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 16, color: '#999' }}>No unassigned services</Text>
+            </View>
+          }
+  
         />
 
 
@@ -490,7 +567,7 @@ useEffect(() => {
           renderItem={({ item }) => (
             <TouchableOpacity  onPress={() => navigation.navigate('RequestDetails', { serviceItem: item })} style={styles.serviceRequestCard}>
               <View style={styles.grayBox} >
-              <Image source={{uri:item?.service_icon}} style={{width:'80%',height:'80%'}} />
+              <Image source={{uri:item?.service_image}} style={{width:'80%',height:'80%'}} />
               </View>
               <View style={{
                 flex: 1,             // Takes up remaining space
@@ -499,13 +576,19 @@ useEffect(() => {
                 justifyContent: "center"
               }}>
                 <Text style={styles.serviceTitle}>{item?.service_name}</Text>
-                <Text style={styles.serviceMeta}>{item?.address_details?.address_line1},{item?.address_details?.address_line2}</Text>
+                <Text style={styles.serviceMeta}>{item?.address_details?.address_line1}</Text>
                 <Text style={styles.serviceMeta}>Date & Time: {moment.utc(item?.booked_date_time).local().format("YYYY-MM-DD")}, {moment.utc(item?.booked_date_time).local().format("hh:mm A")}</Text>
           
                 <Text style={styles.serviceMeta}>{item?.booking_status}</Text>
               </View>
             </TouchableOpacity>
           )}
+          ListEmptyComponent={
+            <View style={{ padding: 20, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 16, color: '#999' }}>No Pending Service</Text>
+            </View>
+          }
+        
         />
         <ReminderModal
   visible={reminderVisible}
@@ -513,20 +596,23 @@ useEffect(() => {
   hoursLeft={hoursLeft}
   jobType={jobType}
 />
+
+<Image source={{uri:ads[0]?.image}} resizeMethod='resize' resizeMode="stretch" style={styles.banner} />
       </ScrollView>
 
-      {loading ? <ActivityIndicator size="large" color="#0000ff" /> : (
+      {loading ? <ActivityIndicator style={styles.loaderOverlay} /> : (
   <ScrollView contentContainerStyle={styles.scrollView}>
     {/* your content */}
   </ScrollView>
 )}
+
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#FFF" },
-  scrollView: { paddingHorizontal: 15, paddingTop: 20, paddingBottom: 30 },
+  scrollView: { paddingHorizontal: 15, paddingTop: 20 },
   locationRow: { flexDirection: "row", alignItems: "center", marginBottom: 15 },
   mapIcon: { width: 20, height: 20, marginRight: 10 },
   locationText: { fontSize: 16, fontWeight: "bold", color: 'black' },
@@ -661,7 +747,7 @@ const styles = StyleSheet.create({
 
   grayBox: {
     width: 100,
-    backgroundColor: "#C4C4C4",
+    backgroundColor: "#ECECED",
     justifyContent:'center',
     alignItems:'center'
   },
@@ -768,6 +854,15 @@ const styles = StyleSheet.create({
     color: "#002B5B",
     fontWeight: "600",
   },
+  banner: { width: "100%", height: 100, borderRadius: 10, marginBottom: 20 ,marginTop:12},
+  loaderOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    zIndex: 9999
+  }
 
 });
 

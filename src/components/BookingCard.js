@@ -30,7 +30,7 @@ const BookingCard = ({ booking, isUpcoming, onCancel, onReschedule, onFeedback }
                 />
                 <View>
                 <Text style={styles.infoText}>{booking?.address_details?.address_line1}</Text>
-                <Text style={styles.infoText}>{booking?.address_details?.address_line2}</Text>
+                {/* <Text style={styles.infoText}>{booking?.address_details?.address_line2}</Text> */}
                 </View>
               
             </View>

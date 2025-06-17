@@ -86,7 +86,7 @@ const CheckoutModal = ({
                                 </View>
                                 <View style={styles.addressTextContainer}>
                                         <Text style={styles.addressTitle}>{item?.address_line1}</Text>
-                                        <Text style={styles.addressDetail}>{item?.address_line2}</Text>
+                                        {/* <Text style={styles.addressDetail}>{item?.address_line2}</Text> */}
                                     <Text style={styles.phone}>Ph: {item.phone}</Text>
                                 </View>
                             </TouchableOpacity>

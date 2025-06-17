@@ -1,10 +1,11 @@
-import React, { useState ,useEffect} from 'react';
+import React, { useState ,useEffect ,useCallback} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert,TouchableWithoutFeedback,Keyboard,ActivityIndicator } from 'react-native';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import TextInputBox from '../components/TextInputBox';
 import GradientButton from '../components/GradientButton';
-import { createAdditionalAmount ,uploadProviderDocuments,updateBookingstatus,fetchAds} from '../redux/AuthSlice';
+import { createAdditionalAmount ,uploadProviderDocuments,updateBookingstatus,fetchAds,fetchBookingById,updateAdditionalAmount} from '../redux/AuthSlice';
 import { useDispatch ,useSelector} from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
 
 const EstimationScreen = ({ navigation,route }) => {
   const { bookingItem } = route.params;
@@ -16,23 +17,47 @@ const EstimationScreen = ({ navigation,route }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const { ads, error } = useSelector(state => state.auth); 
+  const [bookdetails, setbookdetails] = useState('');
 
 
   useEffect(() => {
     dispatch(fetchAds());
   }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        try {
+          const response = await dispatch(fetchBookingById(bookingItem?.booking_id)).unwrap();
+          console.log('Booking response:estima', response);
+          setbookdetails(response)
 
+        } catch (error) {
+          console.error('Failed to fetch booking:', error);
+        }
+      };
+
+      fetchData();
+    }, [dispatch, bookingItem?.booking_id])
+  );
   const handleSave = async () => {
-    if ( !amount  || !minutes || !description) {
-      Alert.alert('Validation Error', 'Please fill in all fields .');
+    if (!amount || !minutes || !description) {
+      Alert.alert('Validation Error', 'Please fill in all fields.');
       return;
     }
-    if ( !imageUri ) {
-      Alert.alert('Validation Error', 'Please upload an image ');
+    if (!imageUri) {
+      Alert.alert('Validation Error', 'Please upload an image.');
       return;
     }
-
-        // 1. Upload selfie (provider_id: 0)
+  
+    // GST calculation
+    const originalAmount = parseFloat(amount);
+    const gstAmount = parseFloat((originalAmount * 0.18).toFixed(2));
+    const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
+  
+    try {
+      // Check status condition
+      if (bookdetails?.booking_status_id < 10) {
+        // Create additional amount flow
         const selfieFile = {
           uri: imageUri,
           type: 'image/jpeg',
@@ -46,54 +71,123 @@ const EstimationScreen = ({ navigation,route }) => {
           })
         );
   
-       
-      if (!uploadProviderDocuments.fulfilled.match(selfieResult)) {
-        throw new Error('Selfie upload failed');
+        if (!uploadProviderDocuments.fulfilled.match(selfieResult)) {
+          throw new Error('Selfie upload failed');
+        }
+  
+        const selfieUploadData = selfieResult.payload;
+        const profileImagePath = selfieUploadData?.[0]?.path;
+  
+        const createPayload = {
+          amount: parseFloat((parseFloat(amount) * 1.18).toFixed(2)),
+          booking_id: bookingItem?.booking_id,
+          description: description,
+          number_of_days_to_completed: 0,
+          number_of_hours_to_completed: parseInt(minutes),
+          image: profileImagePath
+        };
+  
+        const res = await dispatch(createAdditionalAmount(createPayload)).unwrap();
+        setLoading(true);
+        await dispatch(updateBookingstatus({ bookingId: bookingItem?.booking_id, booking_status: 10 })).unwrap();
+        setLoading(false);
+        Alert.alert('Success', 'Additional amount submitted!');
+        navigation.navigate('ServiceStatusScreen', { bookingItem, additionalAmountResponse: res });
+  
+      } else {
+        // Update additional amount flow
+        const updatePayload = {
+          amount: parseFloat(totalAmountWithGst),
+          booking_id: bookingItem?.booking_id,
+          description: description,
+          number_of_days_to_completed: 0,
+          number_of_hours_to_completed: parseInt(minutes),
+        };
+  
+        
+        const res = await dispatch(updateAdditionalAmount({ payload: updatePayload, additional_amount_id: bookdetails?.additional_amounts[0]?.additional_amount_id })).unwrap();
+        Alert.alert('Success', 'Additional amount updated!');
+        navigation.navigate('ServiceStatusScreen', { bookingItem, additionalAmountResponse:res });
       }
-  
-      const selfieUploadData = selfieResult.payload;
-      const profileImagePath = selfieUploadData?.[0]?.path
-
-      const originalAmount = parseFloat(amount);
-const gstAmount = parseFloat((originalAmount * 0.18).toFixed(2));
-const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
-  
-    const payload = {
-      // additional_amount_id: parseInt(additionalAmount),
-      // amount: parseFloat(amount),
-      amount: parseFloat((parseFloat(amount) * 1.18).toFixed(2)),
-      booking_id: bookingItem?.booking_id,
-      description: description,
-      number_of_days_to_completed: 0,
-      number_of_hours_to_completed: parseInt(minutes),
-      image:profileImagePath
-    };
-  
-    dispatch(createAdditionalAmount(payload))
-    .unwrap()
-    .then(res => {
-      setLoading(true); 
-      // First update booking status
-      dispatch(updateBookingstatus({ bookingId: bookingItem?.booking_id, booking_status: 10 }))
-        .unwrap()
-        .then(() => {
-          setLoading(false); 
-          // After status update, show alert and navigate
-          Alert.alert('Success', 'Additional amount submitted!');
-          navigation.navigate('ServiceStatusScreen', {
-            bookingItem,
-            additionalAmountResponse: res,
-          });
-        })
-        .catch(statusErr => {
-          Alert.alert('Error', `Booking status update failed: ${statusErr}`);
-        });
-    })
-    .catch(err => {
-      Alert.alert('Error', `Additional amount submission failed: ${err}`);
-    });
-  
+    } catch (err) {
+      console.error('Error:', err);
+      Alert.alert('Error', err.message || 'Something went wrong.');
+    }
   };
+  
+
+//   const handleSave = async () => {
+//     if ( !amount  || !minutes || !description) {
+//       Alert.alert('Validation Error', 'Please fill in all fields .');
+//       return;
+//     }
+//     if ( !imageUri ) {
+//       Alert.alert('Validation Error', 'Please upload an image ');
+//       return;
+//     }
+
+//         // 1. Upload selfie (provider_id: 0)
+//         const selfieFile = {
+//           uri: imageUri,
+//           type: 'image/jpeg',
+//           name: 'selfie.jpg',
+//         };
+  
+//         const selfieResult = await dispatch(
+//           uploadProviderDocuments({
+//             provider_id: 0,
+//             documents: [selfieFile],
+//           })
+//         );
+  
+       
+//       if (!uploadProviderDocuments.fulfilled.match(selfieResult)) {
+//         throw new Error('Selfie upload failed');
+//       }
+  
+//       const selfieUploadData = selfieResult.payload;
+//       const profileImagePath = selfieUploadData?.[0]?.path
+
+//       const originalAmount = parseFloat(amount);
+// const gstAmount = parseFloat((originalAmount * 0.18).toFixed(2));
+// const totalAmountWithGst = parseFloat((originalAmount + gstAmount).toFixed(2));
+  
+//     const payload = {
+//       // additional_amount_id: parseInt(additionalAmount),
+//       // amount: parseFloat(amount),
+//       amount: parseFloat((parseFloat(amount) * 1.18).toFixed(2)),
+//       booking_id: bookingItem?.booking_id,
+//       description: description,
+//       number_of_days_to_completed: 0,
+//       number_of_hours_to_completed: parseInt(minutes),
+//       image:profileImagePath
+//     };
+//   {bookdetails?.booking_status_id <10 }
+//     dispatch(createAdditionalAmount(payload))
+//     .unwrap()
+//     .then(res => {
+//       setLoading(true); 
+//       // First update booking status
+//       dispatch(updateBookingstatus({ bookingId: bookingItem?.booking_id, booking_status: 10 }))
+//         .unwrap()
+//         .then(() => {
+//           setLoading(false); 
+//           // After status update, show alert and navigate
+//           Alert.alert('Success', 'Additional amount submitted!');
+//           navigation.navigate('ServiceStatusScreen', {
+//             bookingItem,
+//             additionalAmountResponse: res,
+//           });
+//         })
+//         .catch(statusErr => {
+//           Alert.alert('Error', `Booking status update failed: ${statusErr}`);
+//         });
+//     })
+//     .catch(err => {
+//       Alert.alert('Error', `Additional amount submission failed: ${err}`);
+//     });
+  
+//   };
 
   const handleImagePick = () => {
     Alert.alert(

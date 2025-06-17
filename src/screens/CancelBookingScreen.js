@@ -75,7 +75,7 @@ const CancelBookingScreen = ({ navigation, route }) => {
                 />
                 <View style={{ flex: 1 }}>
                     <Text style={styles.serviceTitle}>{selectedBooking?.service_name}</Text>
-                    <Text style={styles.price}>{selectedBooking?.address_details?.address_line1},{selectedBooking?.address_details?.address_line2}</Text>
+                    <Text style={styles.price}>{selectedBooking?.address_details?.address_line1}</Text>
                     <Text style={styles.price}>{selectedBooking?.booked_date_time}</Text>
                 </View>
 

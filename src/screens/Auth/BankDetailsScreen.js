@@ -93,7 +93,7 @@ const BankDetailsScreen = ({ navigation, route }) => {
         mobile: allUserData?.mobile,
         password: allUserData?.password,
         address1: allUserData?.personalDetails?.address,
-        address2: allUserData?.personalDetails?.address,
+        address2: '',
         city: allUserData?.personalDetails?.city,
         profile_image_file_id: profileImagePath,
         active: false,

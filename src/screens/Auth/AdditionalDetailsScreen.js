@@ -67,7 +67,7 @@ const AdditionalDetailsScreen = ({ navigation, route }) => {
                 onValueChange={setExpertise}
                 items={combinedServices.map(item => ({
                     city_id: item?.service_type_id,
-                    city_name: item?.service_type_name
+                    city_name: `${item?.service_type_name}${item.is_emergency_service == 1 ? '(Emergency)' : ''}`
                 }))}
             />
             {/* <TextInputBox placeholder="Area of Expertise" value={expertise} onChangeText={setExpertise} /> */}
@@ -84,7 +84,7 @@ const AdditionalDetailsScreen = ({ navigation, route }) => {
     { city_id: 'Other Professional Course', city_name: 'Other Professional Course' }
   ]}
 />
-            <TextInputBox placeholder="Certificate/Training" value={certification} onChangeText={setCertification} />
+            <TextInputBox placeholder="Certificate/Training(optional)" value={certification} onChangeText={setCertification} />
             <TextInputBox   maxLength={2}  keyboardType="numeric"  placeholder="Experience(yrs)" value={experience} onChangeText={setExperience} />
             {/* <TextInputBox placeholder="Tool in Hand" value={inhandexperience} onChangeText={setinhandExperience} /> */}
             <CityPickerBox

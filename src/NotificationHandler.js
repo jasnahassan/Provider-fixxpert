@@ -67,6 +67,7 @@ import Sound from 'react-native-sound';
 import { updateFcmToken, fetchAllServiceTypes, fetchBanners ,sendServiceProviderLocation,fetchProviderDashboard,fetchUnassignedBookings,acceptBooking,fetchBookingByFilter,deActivateprovider,Activateprovider} from "./redux/AuthSlice";
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import { playNotificationSound } from './utils/SoundManager';
 
 
 
@@ -116,15 +117,15 @@ const NotificationHandler = () => {
             }
         };
 
-        const playNotificationSound = () => {
-            const sound = new Sound('notificationsound.mp3', Sound.MAIN_BUNDLE, (error) => {
-                if (error) {
-                    console.log('🔇 Sound load error:', error);
-                    return;
-                }
-                sound.play(() => sound.release());
-            });
-        };
+        // const playNotificationSound = () => {
+        //     const sound = new Sound('notificationsound.mp3', Sound.MAIN_BUNDLE, (error) => {
+        //         if (error) {
+        //             console.log('🔇 Sound load error:', error);
+        //             return;
+        //         }
+        //         sound.play(() => sound.release());
+        //     });
+        // };
 
         // Listen for foreground notifications
         const unsubscribeOnMessage = messaging().onMessage(async remoteMessage => {

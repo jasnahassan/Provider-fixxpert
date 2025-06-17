@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState ,useCallback} from "react";
 import {
   View,
   Text,
@@ -10,15 +10,17 @@ import {
   Linking
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { updateBookingstatus ,fetchAdditionalAmount} from '../redux/AuthSlice';
+import { updateBookingstatus ,fetchAdditionalAmount,fetchBookingById} from '../redux/AuthSlice';
 import { useDispatch, useSelector } from "react-redux";
 import moment from "moment";
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
 const RequestDetailScreen = ({ navigation,route }) => {
   const { serviceItem } = route.params;
   const [loadingindicator, setLoadingindicator] = useState(false);
+  const [bookdetails, setbookdetails] = useState('');
   const dispatch = useDispatch();
   const dummyBooking = {
     booking_id: '524545',
@@ -32,6 +34,24 @@ const RequestDetailScreen = ({ navigation,route }) => {
       address: 'BANGALORE, KARNATAKA, India, 560002',
     },
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        try {
+          const response = await dispatch(fetchBookingById(serviceItem?.booking_id)).unwrap();
+          console.log('Booking response:', response);
+          setbookdetails(response)
+
+        } catch (error) {
+          console.error('Failed to fetch booking:', error);
+        }
+      };
+
+      fetchData();
+    }, [dispatch, serviceItem?.booking_id])
+  );
+
 
   const handleCall = (phoneNumber) => {
     const url = `tel:${phoneNumber}`;
@@ -71,7 +91,7 @@ console.log(serviceItem,'hhh')
     
       return;
   }
-
+  {bookdetails?.booking_status_id < 7 ? (
 
     dispatch(updateBookingstatus({ bookingId:serviceItem?.booking_id,booking_status:7 }))
         .unwrap()
@@ -84,7 +104,9 @@ console.log(serviceItem,'hhh')
         .catch((err) => {
             console.log('Cancel error:', err);
             alert('Failed to cancel booking');
-        });
+        }) ):(
+          navigation.navigate('TrackingScreen', { bookingItem:serviceItem })
+        )}
 };
 
 
@@ -128,7 +150,7 @@ console.log(serviceItem,'hhh')
         <View style={styles.cardRow}>
           <Image resizeMode="contain" source={require('../assets/Callingred.png')} style={styles.icon} />
           
-          <Text style={styles.contact}>{serviceItem?.user?.mobile}</Text>
+          <Text style={styles.contact}> {serviceItem?.user?.mobile}</Text>
            
         </View>
         <View style={styles.cardRow}>
@@ -139,7 +161,7 @@ console.log(serviceItem,'hhh')
         </View>
         <View style={styles.cardRow}>
           <Image source={require('../assets/Locationred.png')} style={styles.icon} />
-          <Text style={styles.contact}> {serviceItem?.address_details?.address_line1},{serviceItem?.address_details?.address_line2}</Text>
+          <Text style={styles.contact}> {serviceItem?.address_details?.address_line1}</Text>
           </View>    
            
           </View>
@@ -173,10 +195,32 @@ console.log(serviceItem,'hhh')
           title="Customer Location"
         />
       </MapView>
-{serviceItem.booking_status_id != 13 && (
+
+      <TouchableOpacity 
+  onPress={() => {
+    const lat = parseFloat(serviceItem?.address_details?.lat);
+    const long = parseFloat(serviceItem?.address_details?.long);
+    const label = 'Customer Location';
+    const url = Platform.select({
+      ios: `maps:0,0?q=${label}@${lat},${long}`,
+      android: `geo:0,0?q=${lat},${long}(${label})`
+    });
+
+    Linking.openURL(url).catch(err => {
+      console.error('Failed to open map:', err);
+    });
+  }}
+  style={{ marginBottom: 16, alignItems: 'center' }}
+>
+  <Text style={{ textDecorationLine: 'underline', color: '#062B67', fontWeight: '600' }}>
+    Open in Maps
+  </Text>
+</TouchableOpacity>
+
+{serviceItem?.booking_status_id != 13 && (
     <View style={styles.buttonRow}>
     <TouchableOpacity onPress={()=> handleStartPress()}  style={styles.startBtn}>
-      <Text style={styles.btnTextWhite}>Start</Text>
+      <Text style={styles.btnTextWhite}>{serviceItem?.booking_status_id < 7 ? 'Start' : 'Next'}</Text>
     </TouchableOpacity>
     <TouchableOpacity onPress={()=>navigation.navigate('CancelBooking', { selectedBooking:serviceItem})} style={styles.cancelBtn}>
       <Text style={styles.btnTextPrimary}>Cancel</Text>

@@ -63,7 +63,7 @@ const ViewAllServicesScreen = ({ navigation, route }) => {
                 justifyContent: "center"
               }}>
                 <Text style={styles.serviceTitle}>{item?.service_name}</Text>
-                <Text style={styles.serviceMeta}>{item?.address_details?.address_line1},{item?.address_details?.address_line2}</Text>
+                <Text style={styles.serviceMeta}>{item?.address_details?.address_line1}</Text>
                 <Text style={styles.serviceMeta}>{item?.booked_date_time}</Text>
               </View>
       {/* <Image source={{ uri: item?.icon }} style={styles.serviceIcon} />
